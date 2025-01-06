@@ -5,11 +5,11 @@
 
 create table users(
     user_id integer not null primary key GENERATED ALWAYS AS IDENTITY,
-    email varchar(255) not null,
+    email varchar(255) unique not null,
     password varchar(255) not null,
     first_name varchar(255) not null,
     last_name varchar(255) not null,
     birth_date date not null,
-    phone_number varchar(50),
+    phone_number varchar(50) not null,
     verified boolean not null
 )

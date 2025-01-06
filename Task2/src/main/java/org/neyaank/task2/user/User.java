@@ -38,5 +38,28 @@ public class User {
     private String phoneNumber;
     private boolean verified;
 
+    public User(UserDTO userDTO){
+        this.id = userDTO.getId();
+        this.email = userDTO.getEmail();
+        this.password = userDTO.getPassword();
+        this.firstName = userDTO.getFirstName();
+        this.lastName = userDTO.getLastName();
+        this.birthDate = userDTO.getBirthDate();
+        this.phoneNumber = userDTO.getPhoneNumber();
+        this.verified = userDTO.isVerified();
+    }
+
+    /**
+     * Copy from another User for easier entity updating
+     */
+    public void copy(User source) {
+        this.email = source.getEmail();
+        this.password = source.getPassword();
+        this.firstName = source.getFirstName();
+        this.lastName = source.getLastName();
+        this.birthDate = source.getBirthDate();
+        this.phoneNumber = source.getPhoneNumber();
+        this.verified = source.isVerified();
+    }
 
 }
