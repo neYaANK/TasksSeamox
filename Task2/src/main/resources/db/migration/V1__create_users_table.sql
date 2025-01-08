@@ -4,7 +4,7 @@
  */
 
 create table users(
-    user_id integer not null primary key GENERATED ALWAYS AS IDENTITY,
+    user_id int generated always as identity not null primary key,
     email varchar(255) unique not null,
     password varchar(255) not null,
     first_name varchar(255) not null,

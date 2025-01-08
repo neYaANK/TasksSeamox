@@ -21,8 +21,7 @@ import java.time.LocalDate;
 @Table(name = "users")
 public class User {
     @Id
-    //Strategy = Identity due to:
-    //https://stackoverflow.com/questions/50659505/spring-boot-project-fails-to-run-because-of-schema-validation-missing-sequence
+    //Strategy = Identity so the DB can generate IDs by itself
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "user_id")
     private Integer id;

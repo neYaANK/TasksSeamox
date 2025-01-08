@@ -5,11 +5,9 @@
 
 package org.neyaank.task2.user;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import jakarta.persistence.Column;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
+import jakarta.validation.constraints.*;
 import lombok.*;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDate;
 
@@ -20,11 +18,29 @@ import java.time.LocalDate;
 @ToString
 public class UserDTO {
     private Integer id;
+    @NotBlank
+    @Size(min = 8, max = 50)
+    @Pattern(regexp = "(?=.*[A-Z])(?=.*[!@#$&*])(?=.*[0-9])(?=.*[a-z]).{8,}",
+            message = "Password must contain at least one upper and lower case symbol," +
+                    " one number and one symbol and consist of at least 8 symbols.")
     private String password;
+    @NotBlank
+    @Size(min = 3, max = 200)
+    @Pattern(regexp = "[\\w.]+@[\\w.]+", message = "Email must be valid")
     private String email;
+    @NotBlank
+    @Size(min = 1, max = 200)
+    @Pattern(regexp = "[a-zA-Z]+", message = "First name must contain only letters.")
     private String firstName;
+    @NotBlank
+    @Size(min = 1, max = 200)
+    @Pattern(regexp = "[a-zA-Z]+", message = "Last name must contain only letters.")
     private String lastName;
+    @NotNull
+    @DateTimeFormat(pattern = "dd-mm-yyyy")
     private LocalDate birthDate;
+    @NotBlank
+    @Pattern(regexp = "\\+?[0-9]{2,20}", message = "Phone number must contain only numbers")
     private String phoneNumber;
     private boolean verified;
 
