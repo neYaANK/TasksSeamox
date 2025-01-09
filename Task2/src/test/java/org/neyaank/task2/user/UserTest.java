@@ -9,6 +9,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -35,9 +36,10 @@ public class UserTest {
     private UserDTO userDTO;
 
     //Make tests more readable
-    public void given_ValidUserDTO(){
+    public void given_validUserDTO(){
         userDTO = new UserDTO(-1,"Pass1234$12","email@gmail.com",
-                "fname", "lname", LocalDate.now(),
+                "fname", "lname",
+                LocalDate.now().minusYears(13),
                 "+430000000000", false);
     }
     public void should_returnBadRequest() throws Exception {
@@ -50,13 +52,14 @@ public class UserTest {
 
     @Test
     public void should_returnNewUser_whenRegisterValidUser() throws Exception {
-        given_ValidUserDTO();
+        given_validUserDTO();
         log.debug("Test registerValidUser user = {}", userDTO);
 
         mockMvc.perform(
                 post("/users")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(mapper.writeValueAsString(userDTO)))
+                .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").isNumber());
     }
 
@@ -66,7 +69,7 @@ public class UserTest {
                     "Password$$", "password$12"})
     public void should_returnBadRequest_whenInvalidPassword(String value)
             throws Exception {
-        given_ValidUserDTO();
+        given_validUserDTO();
         userDTO.setPassword(value);
         log.debug("ParameterizedTest registerUser with invalid password" +
                 " value={}", value);
@@ -79,7 +82,7 @@ public class UserTest {
             {"", "email", "email.com", "email@", "@email", "@email.com"})
     public void should_returnBadRequest_whenInvalidEmail(String value)
             throws Exception {
-        given_ValidUserDTO();
+        given_validUserDTO();
         userDTO.setEmail(value);
         log.debug("ParameterizedTest registerUser with invalid email" +
                 " value={}", value);
@@ -92,7 +95,7 @@ public class UserTest {
             {"", "Name12", "1212", "Name$"})
     public void should_returnBadRequest_whenInvalidFirstName(String value)
             throws Exception {
-        given_ValidUserDTO();
+        given_validUserDTO();
         userDTO.setFirstName(value);
         log.debug("ParameterizedTest registerUser with invalid firstName" +
                 " value={}", value);
@@ -105,7 +108,7 @@ public class UserTest {
             {"", "Name12", "1212", "Name$"})
     public void should_returnBadRequest_whenInvalidLastName(String value)
             throws Exception {
-        given_ValidUserDTO();
+        given_validUserDTO();
         userDTO.setLastName(value);
         log.debug("ParameterizedTest registerUser with invalid lastName" +
                 " value={}", value);
@@ -118,9 +121,21 @@ public class UserTest {
             {"", "(044)123321", "123321asd", "123-123", "099999999999999999999", "1"})
     public void should_returnBadRequest_whenInvalidPhoneNumber(String value)
             throws Exception {
-        given_ValidUserDTO();
+        given_validUserDTO();
         userDTO.setPhoneNumber(value);
         log.debug("ParameterizedTest registerUser with invalid phoneNumber" +
+                " value={}", value);
+
+        should_returnBadRequest();
+    }
+    //Parameterized test in case we will need to do more testing for birthDate validation
+    @ParameterizedTest
+    @CsvSource({"2999-01-01"})
+    public void should_returnBadRequest_whenInvalidBirthDate(LocalDate value)
+            throws Exception {
+        given_validUserDTO();
+        userDTO.setBirthDate(value);
+        log.debug("ParameterizedTest registerUser with invalid birthDate" +
                 " value={}", value);
 
         should_returnBadRequest();
@@ -129,7 +144,7 @@ public class UserTest {
 
     @Test
     public void should_returnUpdatedUser_whenUpdateUser() throws Exception {
-        given_ValidUserDTO();
+        given_validUserDTO();
 
         /* TODO: Changes email due to email must be unique and default one is already
             used by another test. Probably should truncate DB before each test
@@ -149,6 +164,7 @@ public class UserTest {
                 put("/users/{id}", newUserDTO.getId())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(mapper.writeValueAsString(userDTO)))
+                .andExpect(status().isOk())
                 .andExpect(jsonPath("$.firstName")
                         .value(userDTO.getFirstName()));
     }

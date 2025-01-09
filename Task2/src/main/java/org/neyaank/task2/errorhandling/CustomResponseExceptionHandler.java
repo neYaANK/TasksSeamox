@@ -15,7 +15,10 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 
 @ControllerAdvice
 public class CustomResponseExceptionHandler {
-
+    /**
+     * Creates ValidationErrorResponse with status 400 and returns all
+     * validation violations
+     */
     @ExceptionHandler(MethodArgumentNotValidException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ResponseBody

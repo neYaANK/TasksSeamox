@@ -44,6 +44,11 @@ public class UserDTO {
     private String phoneNumber;
     private boolean verified;
 
+    @AssertTrue(message = "Birthdate can't be in the future")
+    public boolean isValidBirthDate(){
+        return birthDate.isBefore(LocalDate.now());
+    }
+
     public UserDTO(User user) {
         this.id = user.getId();
         this.email = user.getEmail();

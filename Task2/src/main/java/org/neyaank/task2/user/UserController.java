@@ -19,7 +19,7 @@ public class UserController {
     @PostMapping
     public ResponseEntity registerUser(@Valid @RequestBody UserDTO userDto) {
         User user = new User(userDto);
-        //Not sure if I should create another UserDTO for
+        //Not sure if I should create another UserDTO class for
         //input that won't have id field or stick to this impl
         user.setId(null);
         User userResult = userService.registerUser(user);
