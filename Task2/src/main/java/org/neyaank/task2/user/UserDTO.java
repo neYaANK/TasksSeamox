@@ -13,9 +13,7 @@ import java.time.LocalDate;
 
 @AllArgsConstructor
 @NoArgsConstructor
-@Getter
-@Setter
-@ToString
+@Data
 public class UserDTO {
     private Integer id;
     @NotBlank

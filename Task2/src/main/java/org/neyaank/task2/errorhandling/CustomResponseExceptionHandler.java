@@ -23,12 +23,12 @@ public class CustomResponseExceptionHandler {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ResponseBody
     public ValidationErrorResponse onArgumentNotValid(MethodArgumentNotValidException e){
-        ValidationErrorResponse error = new ValidationErrorResponse();
+        ValidationErrorResponse response = new ValidationErrorResponse();
         for (FieldError fieldError : e.getBindingResult().getFieldErrors()) {
-            error.getViolations().add(
+            response.getViolations().add(
                     new ValidationError(fieldError.getField(),
                             fieldError.getDefaultMessage()));
         }
-        return error;
+        return response;
     }
 }

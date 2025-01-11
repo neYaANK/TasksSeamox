@@ -15,12 +15,11 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class UserController {
     private final UserService userService;
+    private final UserMapper userMapper;
 
     @PostMapping
     public ResponseEntity registerUser(@Valid @RequestBody UserDTO userDto) {
-        User user = new User(userDto);
-        //Not sure if I should create another UserDTO class for
-        //input that won't have id field or stick to this impl
+        User user = userMapper.userDTOToUser(userDto);
         user.setId(null);
         User userResult = userService.registerUser(user);
         UserDTO result = new UserDTO(userResult);
@@ -30,7 +29,7 @@ public class UserController {
     @PutMapping("/{id}")
     public ResponseEntity updateUser(@PathVariable int id,
                                      @Valid @RequestBody UserDTO userDto) {
-        User user = new User(userDto);
+        User user = userMapper.userDTOToUser(userDto);
         user.setId(null);
         User userResult = userService.updateUser(id, user);
         UserDTO result = new UserDTO(userResult);

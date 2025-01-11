@@ -6,7 +6,9 @@
 package org.neyaank.task2.user;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -19,6 +21,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDate;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -32,22 +35,17 @@ public class UserTest {
     private MockMvc mockMvc;
     @Autowired
     private ObjectMapper mapper;
+    @Autowired
+    private UserRepository userRepository;
+    @Autowired
+    private UserMapper userMapper;
 
     private UserDTO userDTO;
 
-    //Make tests more readable
-    public void given_validUserDTO(){
-        userDTO = new UserDTO(-1,"Pass1234$12","email@gmail.com",
-                "fname", "lname",
-                LocalDate.now().minusYears(13),
-                "+430000000000", false);
-    }
-    public void should_returnBadRequest() throws Exception {
-        mockMvc.perform(
-                post("/users")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(mapper.writeValueAsString(userDTO)))
-                .andExpect(status().isBadRequest());
+    @AfterEach
+    public void tearDown() {
+        userRepository.deleteAll();
+        userRepository.flush();
     }
 
     @Test
@@ -145,13 +143,6 @@ public class UserTest {
     @Test
     public void should_returnUpdatedUser_whenUpdateUser() throws Exception {
         given_validUserDTO();
-
-        /* TODO: Changes email due to email must be unique and default one is already
-            used by another test. Probably should truncate DB before each test
-            or delete freshly added row, but now I don't have required endpoint implemented
-            and I guess I shouldn't use repository for this
-         */
-        userDTO.setEmail("emaill@gmail.com");
         String newUserJson = mockMvc.perform(
                 post("/users")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -167,5 +158,35 @@ public class UserTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.firstName")
                         .value(userDTO.getFirstName()));
+    }
+    @Test
+    public void should_mapUserCorrectly_whenMapUserDtoToUser(){
+        given_validUserDTO();
+
+        User user = userMapper.userDTOToUser(userDTO);
+        log.debug("Test userMapper: userDTO={}, user={}", userDTO, user);
+
+        assertEquals(userDTO.getId(), user.getId());
+        assertEquals(userDTO.getPassword(), user.getPassword());
+        assertEquals(userDTO.getEmail(), user.getEmail());
+        assertEquals(userDTO.getBirthDate(), user.getBirthDate());
+        assertEquals(userDTO.getFirstName(), user.getFirstName());
+        assertEquals(userDTO.getLastName(), user.getLastName());
+        assertEquals(userDTO.getPhoneNumber(), user.getPhoneNumber());
+    }
+
+    //Make tests more readable
+    public void given_validUserDTO(){
+        userDTO = new UserDTO(-1,"Pass1234$12","email@gmail.com",
+                "fname", "lname",
+                LocalDate.now().minusYears(13),
+                "+430000000000", false);
+    }
+    public void should_returnBadRequest() throws Exception {
+        mockMvc.perform(
+                        post("/users")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(mapper.writeValueAsString(userDTO)))
+                .andExpect(status().isBadRequest());
     }
 }
