@@ -44,6 +44,8 @@ public class UserServiceImpl implements UserService{
         if(user.isEmpty()){
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found");
         }
-        return user.get();
+        User toReturn = user.get();
+        toReturn.setPassword("");
+        return toReturn;
     }
 }

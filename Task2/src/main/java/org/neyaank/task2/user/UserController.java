@@ -39,8 +39,6 @@ public class UserController {
     public ResponseEntity getUser(@PathVariable int id) {
         User user = userService.findUserById(id);
         UserDTO result = userMapper.userToUserDTO(user);
-        //TODO: Move to one of the methods in service?
-        result.setPassword("");
         return ResponseEntity.ok(result);
     }
 
