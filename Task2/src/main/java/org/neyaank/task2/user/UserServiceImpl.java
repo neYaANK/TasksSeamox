@@ -6,6 +6,7 @@
 package org.neyaank.task2.user;
 
 import lombok.RequiredArgsConstructor;
+import org.neyaank.task2.errorhandling.NotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
@@ -42,7 +43,7 @@ public class UserServiceImpl implements UserService{
     public User findUserById(int id) {
         Optional<User> user = userRepository.findById(id);
         if(user.isEmpty()){
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found");
+            throw new NotFoundException("User not found");
         }
         User toReturn = user.get();
         toReturn.setPassword("");

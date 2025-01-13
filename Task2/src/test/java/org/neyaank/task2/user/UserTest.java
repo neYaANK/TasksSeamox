@@ -65,78 +65,78 @@ public class UserTest {
     @ValueSource(strings =
             {"", "Pass$1", "passworddd", "PASSDWORDDD", "$$$$$$$$$$", "Password12",
                     "Password$$", "password$12"})
-    public void then_returnBadRequest_whenInvalidPassword(String value)
+    public void should_returnBadRequest_whenInvalidPassword(String value)
             throws Exception {
         given_validUserDTO();
         userDTO.setPassword(value);
         log.debug("ParameterizedTest registerUser with invalid password" +
                 " value={}", value);
 
-        then_returnBadRequest();
+        should_returnBadRequest();
     }
 
     @ParameterizedTest
     @ValueSource(strings =
             {"", "email", "email.com", "email@", "@email", "@email.com"})
-    public void then_returnBadRequest_whenInvalidEmail(String value)
+    public void should_returnBadRequest_whenInvalidEmail(String value)
             throws Exception {
         given_validUserDTO();
         userDTO.setEmail(value);
         log.debug("ParameterizedTest registerUser with invalid email" +
                 " value={}", value);
 
-        then_returnBadRequest();
+        should_returnBadRequest();
     }
 
     @ParameterizedTest
     @ValueSource(strings =
             {"", "Name12", "1212", "Name$"})
-    public void then_returnBadRequest_whenInvalidFirstName(String value)
+    public void should_returnBadRequest_whenInvalidFirstName(String value)
             throws Exception {
         given_validUserDTO();
         userDTO.setFirstName(value);
         log.debug("ParameterizedTest registerUser with invalid firstName" +
                 " value={}", value);
 
-        then_returnBadRequest();
+        should_returnBadRequest();
     }
 
     @ParameterizedTest
     @ValueSource(strings =
             {"", "Name12", "1212", "Name$"})
-    public void then_returnBadRequest_whenInvalidLastName(String value)
+    public void should_returnBadRequest_whenInvalidLastName(String value)
             throws Exception {
         given_validUserDTO();
         userDTO.setLastName(value);
         log.debug("ParameterizedTest registerUser with invalid lastName" +
                 " value={}", value);
 
-        then_returnBadRequest();
+        should_returnBadRequest();
     }
 
     @ParameterizedTest
     @ValueSource(strings =
             {"", "(044)123321", "123321asd", "123-123", "099999999999999999999", "1"})
-    public void then_returnBadRequest_whenInvalidPhoneNumber(String value)
+    public void should_returnBadRequest_whenInvalidPhoneNumber(String value)
             throws Exception {
         given_validUserDTO();
         userDTO.setPhoneNumber(value);
         log.debug("ParameterizedTest registerUser with invalid phoneNumber" +
                 " value={}", value);
 
-        then_returnBadRequest();
+        should_returnBadRequest();
     }
     //Parameterized test in case we will need to do more testing for birthDate validation
     @ParameterizedTest
     @CsvSource({"2999-01-01"})
-    public void then_returnBadRequest_whenInvalidBirthDate(LocalDate value)
+    public void should_returnBadRequest_whenInvalidBirthDate(LocalDate value)
             throws Exception {
         given_validUserDTO();
         userDTO.setBirthDate(value);
         log.debug("ParameterizedTest registerUser with invalid birthDate" +
                 " value={}", value);
 
-        then_returnBadRequest();
+        should_returnBadRequest();
     }
 
 
@@ -221,7 +221,7 @@ public class UserTest {
                 LocalDate.now().minusYears(13),
                 "+430000000000", false);
     }
-    public void then_returnBadRequest() throws Exception {
+    public void should_returnBadRequest() throws Exception {
         mockMvc.perform(
                         post("/users")
                                 .contentType(MediaType.APPLICATION_JSON)
