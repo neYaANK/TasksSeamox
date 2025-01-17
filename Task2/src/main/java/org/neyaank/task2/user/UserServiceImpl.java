@@ -5,6 +5,7 @@
 
 package org.neyaank.task2.user;
 
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.neyaank.task2.errorhandling.NotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,5 +49,16 @@ public class UserServiceImpl implements UserService{
         User toReturn = user.get();
         toReturn.setPassword("");
         return toReturn;
+    }
+
+    @Override
+    public User getProxyById(int id) {
+        User proxy = null;
+        try {
+            proxy = userRepository.getReferenceById(id);
+        }catch (EntityNotFoundException e){
+            throw new NotFoundException("User with id " + id + " not found");
+        }
+            return proxy;
     }
 }
