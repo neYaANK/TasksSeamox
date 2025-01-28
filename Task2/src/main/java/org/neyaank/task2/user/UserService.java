@@ -10,4 +10,5 @@ public interface UserService {
     User updateUser(int id, User user);
     User findUserById(int id);
     User getProxyById(int id);
+    boolean existsById(int id);
 }

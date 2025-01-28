@@ -8,9 +8,9 @@ package org.neyaank.task2.user;
 import java.util.List;
 
 public interface UserAddressService {
-    UserAddress getUserAddressById(int id);
+    UserAddress getUserAddressByIdAndUserId(int id, int userId);
     UserAddress createUserAddress(int userId, UserAddress userAddress);
-    UserAddress updateUserAddress(int id, UserAddress userAddress);
-    void deleteUserAddress(int id);
+    UserAddress updateUserAddressOfUser(int id, int userId, UserAddress userAddress);
+    void deleteUserAddressOfAUser(int id, int userId);
     List<UserAddress> getAddressesOfUser(int userId);
 }
