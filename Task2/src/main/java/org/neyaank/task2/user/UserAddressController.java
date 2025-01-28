@@ -32,21 +32,21 @@ public class UserAddressController {
         List<UserAddress> userAddressList = addressService.getAddressesOfUser(userId);
         List<UserAddressDTO> response = userAddressList.stream()
                 .map(address -> addressMapper.toDTO(address)).toList();
-        return ResponseEntity.ok(userAddressList);
+        return ResponseEntity.ok(response);
     }
     @PutMapping("/{addressId}")
     public ResponseEntity update(@PathVariable(name = "userId") int userId,
                                  @PathVariable(name = "addressId") int addressId,
                                  @Valid @RequestBody UserAddressDTO userAddress) {
         UserAddress address = addressMapper.toAddress(userAddress);
-        address = addressService.updateUserAddress(addressId, address);
+        address = addressService.updateUserAddressOfUser(addressId, userId, address);
         UserAddressDTO responseAddress = addressMapper.toDTO(address);
         return ResponseEntity.ok(responseAddress);
     }
     @DeleteMapping("/{addressId}")
     public ResponseEntity delete(@PathVariable(name = "userId") int userId,
                                  @PathVariable(name = "addressId") int addressId) {
-        addressService.deleteUserAddress(addressId);
+        addressService.deleteUserAddressOfAUser(addressId, userId);
         return ResponseEntity.ok().build();
     }
 

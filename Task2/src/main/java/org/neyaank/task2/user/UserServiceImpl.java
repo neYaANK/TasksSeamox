@@ -61,4 +61,9 @@ public class UserServiceImpl implements UserService{
         }
             return proxy;
     }
+
+    @Override
+    public boolean existsById(int id) {
+        return userRepository.existsById(id);
+    }
 }
