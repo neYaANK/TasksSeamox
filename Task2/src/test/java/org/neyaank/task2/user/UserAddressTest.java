@@ -72,6 +72,40 @@ public class UserAddressTest extends AbstractUserTest {
                 .andExpect(status().isNotFound());
     }
     @Test
+    public void should_createPrimaryAddress_when_createAddressWithoutAddresses() throws Exception{
+        given_validUserAddressDTO();
+        log.debug("Test createValidAddress if address is primary when no addresses provided");
+
+        mockMvc.perform(
+                        post("/users/{id}/addresses",createdUserId)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(mapper.writeValueAsString(addressDTO)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.primary").value(true));
+    }
+    @Test
+    public void should_replacePrimary_when_createAddressWithExistingPrimary() throws Exception{
+        given_validUserAddressDTO();
+        addressDTO.setPrimary(true);
+        UserAddress address = addressMapper.toAddress(addressDTO);
+        address.setUser(userRepository.getReferenceById(createdUserId));
+        addressDTO.setCity("AddressThatIsPrimary");
+
+        address = addressRepository.save(address);
+        log.debug("Test createValidAddress replace primary when primary exists");
+
+
+        mockMvc.perform(
+                        post("/users/{id}/addresses",createdUserId)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(mapper.writeValueAsString(addressDTO)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.primary").value(true));
+        assertEquals(addressRepository.findById(address.getId()).get().isPrimary(),
+                false);
+    }
+
+    @Test
     public void should_updateAddress_when_updateValidAddress() throws Exception {
         given_validUserAddressDTO();
         log.debug("Test updateAddress address = {}", addressDTO);

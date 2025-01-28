@@ -43,10 +43,13 @@ public class UserAddressServiceImpl implements UserAddressService {
         userAddress.setId(null);
         User user = userService.getProxyById(userId);
         userAddress.setUser(user);
-        UserAddress address = addressRepository.save(userAddress);
+
+        Optional<UserAddress> primary = findPrimaryAddress(userId);
+        UserAddress address = setNewPrimaryAddress(userAddress, primary);
         log.debug("UserAddress created {}", userAddress);
         return address;
     }
+
 
     @Override
     @Transactional(readOnly = true)
@@ -64,7 +67,8 @@ public class UserAddressServiceImpl implements UserAddressService {
         userAddress.setId(id);
         //Ensure that owning User is not changed
         userAddress.setUser(oldAddress.get().getUser());
-        UserAddress address = addressRepository.save(userAddress);
+        Optional<UserAddress> primary = findPrimaryAddress(userId);
+        UserAddress address = setNewPrimaryAddress(userAddress, primary);
         log.debug("UserAddress with id {} updated, new = {}",id, userAddress);
         return address;
     }
@@ -78,5 +82,35 @@ public class UserAddressServiceImpl implements UserAddressService {
     public List<UserAddress> getAddressesOfUser(int userId) {
         User user = userService.findUserById(userId);
         return new ArrayList<>(user.getAddresses());
+    }
+
+    private Optional<UserAddress> findPrimaryAddress(int userId) {
+        List<UserAddress> addresses = getAddressesOfUser(userId);
+        if(addresses.isEmpty()) {
+            return Optional.empty();
+        }
+        Optional<UserAddress> primary = addresses.stream()
+                .filter(UserAddress::isPrimary).findFirst();
+        return primary;
+    }
+
+    /**
+     * Handles logic of inserting and changing the primary address to the new one
+     * Only one primary address is possible
+     */
+    private UserAddress setNewPrimaryAddress(UserAddress newAddress,
+                                             Optional<UserAddress> oldPrimary){
+        if(oldPrimary.isPresent()) {
+            if(newAddress.isPrimary()){
+                UserAddress primary = oldPrimary.get();
+                primary.setPrimary(false);
+                addressRepository.save(primary);
+            }
+        }else{
+            newAddress.setPrimary(true);
+        }
+
+        UserAddress address = addressRepository.save(newAddress);
+        return address;
     }
 }
