@@ -37,9 +37,7 @@ public class User {
     @Column(name="phone_number")
     private String phoneNumber;
     private boolean verified;
-    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
-    @ToString.Exclude
-    private Set<UserAddress> addresses;
+
 
     public User(UserDTO userDTO){
         this.id = userDTO.getId();

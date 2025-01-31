@@ -80,8 +80,10 @@ public class UserAddressServiceImpl implements UserAddressService {
     }
     @Override
     public List<UserAddress> getAddressesOfUser(int userId) {
-        User user = userService.findUserById(userId);
-        return new ArrayList<>(user.getAddresses());
+        if(!userService.existsById(userId)){
+            throw new NotFoundException("User with id "+userId+" not found");
+        }
+        return new ArrayList<>(addressRepository.findByUserId(userId));
     }
 
     private Optional<UserAddress> findPrimaryAddress(int userId) {
