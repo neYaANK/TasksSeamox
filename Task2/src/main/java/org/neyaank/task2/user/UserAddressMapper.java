@@ -1,5 +1,5 @@
 /*
- * UserMapper.java
+ * UserAddressMapper.java
  * Copyright (c) 2025 Artem Nersesian
  */
 
@@ -11,10 +11,10 @@ import org.mapstruct.MappingConstants;
 import org.mapstruct.factory.Mappers;
 
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
-public interface UserMapper {
-    UserMapper INSTANCE = Mappers.getMapper(UserMapper.class );
+public interface UserAddressMapper {
+    UserAddressMapper INSTANCE = Mappers.getMapper(UserAddressMapper.class );
 
-    UserDTO userToUserDTO(User user);
-    @Mapping(target = "addresses", ignore = true)
-    User userDTOToUser(UserDTO userDTO);
+    UserAddressDTO toDTO(UserAddress user);
+    @Mapping(target="user", ignore = true)
+    UserAddress toAddress(UserAddressDTO userDTO);
 }

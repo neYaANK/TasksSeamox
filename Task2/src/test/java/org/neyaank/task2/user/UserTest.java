@@ -27,19 +27,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@SpringBootTest
-@AutoConfigureMockMvc
 @Slf4j
-public class UserTest {
-    @Autowired
-    private MockMvc mockMvc;
-    @Autowired
-    private ObjectMapper mapper;
-    @Autowired
-    private UserRepository userRepository;
-    @Autowired
-    private UserMapper userMapper;
-
+public class UserTest extends AbstractUserTest{
     private UserDTO userDTO;
 
     @AfterEach
@@ -51,7 +40,7 @@ public class UserTest {
     @Test
     public void should_returnNewUser_whenRegisterValidUser() throws Exception {
         given_validUserDTO();
-        log.debug("Test registerValidUser user = {}", userDTO);
+        log.info("Test registerValidUser user = {}", userDTO);
 
         mockMvc.perform(
                 post("/users")
