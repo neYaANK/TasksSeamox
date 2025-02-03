@@ -11,4 +11,5 @@ public interface UserService {
     User findUserById(int id);
     User getProxyById(int id);
     boolean existsById(int id);
+    void verify(String code);
 }

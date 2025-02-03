@@ -1,17 +1,17 @@
 /*
- * UserAddressTest.java
+ * AddressTest.java
  * Copyright (c) 2025 Artem Nersesian
  */
 
 package org.neyaank.task2.user;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.neyaank.task2.AbstractTest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 
@@ -23,12 +23,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @Slf4j
-public class UserAddressTest extends AbstractUserTest {
-    @Autowired
-    private UserAddressMapper addressMapper;
-    @Autowired
-    private UserAddressRepository addressRepository;
-    private UserAddressDTO addressDTO;
+public class UserAddressTest extends AbstractTest {
+
     private int createdUserId = 1;
     @BeforeEach
     public void setUp() {
@@ -218,10 +214,5 @@ public class UserAddressTest extends AbstractUserTest {
         assertEquals(addressDTO.getAddress(), address.getAddress());
         assertEquals(addressDTO.getZip(), address.getZip());
         assertEquals(addressDTO.getDetails(), address.getDetails());
-    }
-
-    public void given_validUserAddressDTO(){
-        addressDTO = new UserAddressDTO(null,"AUT", "10000",
-                "Vienna", "Strasse 1", "abcd", false);
     }
 }

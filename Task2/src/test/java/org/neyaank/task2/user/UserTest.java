@@ -1,22 +1,23 @@
 /*
- * UserTest.java
+ * Test.java
  * Copyright (c) 2025 Artem Nersesian
  */
 
 package org.neyaank.task2.user;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.icegreen.greenmail.configuration.GreenMailConfiguration;
+import com.icegreen.greenmail.junit5.GreenMailExtension;
+import com.icegreen.greenmail.store.FolderException;
+import com.icegreen.greenmail.util.ServerSetupTest;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.neyaank.task2.AbstractTest;
 import org.springframework.http.MediaType;
-import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDate;
 
@@ -28,8 +29,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @Slf4j
-public class UserTest extends AbstractUserTest{
-    private UserDTO userDTO;
+public class UserTest extends AbstractTest {
 
     @AfterEach
     public void tearDown() {
@@ -127,7 +127,22 @@ public class UserTest extends AbstractUserTest{
 
         should_returnBadRequest();
     }
+    // This test depends on the correct registration test
+    // I am not sure how to test it another way as it is required to write
+    // black box behaviour driven tests and sending email is part of registerUser logic.
+    // Probably I should go for a unit tests that focus on EmailService instead of this
+    // approach.
+    @Test
+    public void should_sendVerificationEmail_whenRegisterUser() throws Exception{
+        given_validUserDTO();
+        log.info("Test registerValidUser email sent");
 
+        mockMvc.perform(
+                        post("/users")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(mapper.writeValueAsString(userDTO)));
+        assertEquals(greenMail.getReceivedMessages().length, 1);
+    }
 
     @Test
     public void should_returnUpdatedUser_whenUpdateUser() throws Exception {
@@ -203,13 +218,6 @@ public class UserTest extends AbstractUserTest{
         assertEquals(userDTO.getPhoneNumber(), user.getPhoneNumber());
     }
 
-    //Make tests more readable
-    public void given_validUserDTO(){
-        userDTO = new UserDTO(-1,"Pass1234$12","email@gmail.com",
-                "fname", "lname",
-                LocalDate.now().minusYears(13),
-                "+430000000000", false);
-    }
     public void should_returnBadRequest() throws Exception {
         mockMvc.perform(
                         post("/users")

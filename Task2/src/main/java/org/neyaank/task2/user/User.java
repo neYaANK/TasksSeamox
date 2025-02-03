@@ -37,18 +37,8 @@ public class User {
     @Column(name="phone_number")
     private String phoneNumber;
     private boolean verified;
+    private String verificationCode;
 
-
-    public User(UserDTO userDTO){
-        this.id = userDTO.getId();
-        this.email = userDTO.getEmail();
-        this.password = userDTO.getPassword();
-        this.firstName = userDTO.getFirstName();
-        this.lastName = userDTO.getLastName();
-        this.birthDate = userDTO.getBirthDate();
-        this.phoneNumber = userDTO.getPhoneNumber();
-        this.verified = userDTO.isVerified();
-    }
 
     /**
      * Copy from another User for easier entity updating

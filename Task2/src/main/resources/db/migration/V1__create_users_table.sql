@@ -11,5 +11,6 @@ create table users(
     last_name varchar(255) not null,
     birth_date date not null,
     phone_number varchar(50) not null,
-    verified boolean not null
+    verified boolean not null,
+    verification_code VARCHAR(255)
 )
