@@ -22,7 +22,6 @@ public class VerificationController {
     private UserService userService;
     @GetMapping
     public ResponseEntity verification(@RequestParam String code) {
-        //emailService.sendVerificationEmail("neya.additional@gmail.com","abcd12");
         userService.verify(code);
         return ResponseEntity.ok().build();
     }
