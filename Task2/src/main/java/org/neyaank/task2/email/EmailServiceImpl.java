@@ -26,13 +26,13 @@ public class EmailServiceImpl implements EmailService{
         this.mailSender = mailSender;
     }
 
-    public void sendVerificationEmail(String to, String unique) {
+    public void sendVerificationEmail(String to, String verificationCode) {
         SimpleMailMessage message = new SimpleMailMessage();
         message.setFrom(from);
         message.setTo(to);
         message.setSubject("Email Verification");
         message.setText("Verify your email by clicking at this link: " +
-                publicUrl+"/verification?code="+unique);
+                publicUrl+"/verification?code="+verificationCode);
         log.debug("Sending verification email to {}", to);
         mailSender.send(message);
     }
