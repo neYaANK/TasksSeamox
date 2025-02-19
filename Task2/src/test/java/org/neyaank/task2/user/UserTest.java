@@ -1,22 +1,19 @@
 /*
- * UserTest.java
+ * Test.java
  * Copyright (c) 2025 Artem Nersesian
  */
 
 package org.neyaank.task2.user;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.neyaank.task2.AbstractTest;
 import org.springframework.http.MediaType;
-import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.ResultActions;
 
 import java.time.LocalDate;
 
@@ -28,8 +25,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @Slf4j
-public class UserTest extends AbstractUserTest{
-    private UserDTO userDTO;
+public class UserTest extends AbstractTest {
 
     @AfterEach
     public void tearDown() {
@@ -41,11 +37,7 @@ public class UserTest extends AbstractUserTest{
     public void should_returnNewUser_whenRegisterValidUser() throws Exception {
         given_validUserDTO();
         log.info("Test registerValidUser user = {}", userDTO);
-
-        mockMvc.perform(
-                post("/users")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(mapper.writeValueAsString(userDTO)))
+        registerUser(userDTO)
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").isNumber());
     }
@@ -61,7 +53,7 @@ public class UserTest extends AbstractUserTest{
         log.debug("ParameterizedTest registerUser with invalid password" +
                 " value={}", value);
 
-        should_returnBadRequest();
+        registerUser(userDTO).andExpect(status().isBadRequest());
     }
 
     @ParameterizedTest
@@ -74,7 +66,7 @@ public class UserTest extends AbstractUserTest{
         log.debug("ParameterizedTest registerUser with invalid email" +
                 " value={}", value);
 
-        should_returnBadRequest();
+        registerUser(userDTO).andExpect(status().isBadRequest());
     }
 
     @ParameterizedTest
@@ -87,7 +79,7 @@ public class UserTest extends AbstractUserTest{
         log.debug("ParameterizedTest registerUser with invalid firstName" +
                 " value={}", value);
 
-        should_returnBadRequest();
+        registerUser(userDTO).andExpect(status().isBadRequest());
     }
 
     @ParameterizedTest
@@ -100,7 +92,7 @@ public class UserTest extends AbstractUserTest{
         log.debug("ParameterizedTest registerUser with invalid lastName" +
                 " value={}", value);
 
-        should_returnBadRequest();
+        registerUser(userDTO).andExpect(status().isBadRequest());
     }
 
     @ParameterizedTest
@@ -113,7 +105,7 @@ public class UserTest extends AbstractUserTest{
         log.debug("ParameterizedTest registerUser with invalid phoneNumber" +
                 " value={}", value);
 
-        should_returnBadRequest();
+        registerUser(userDTO).andExpect(status().isBadRequest());
     }
     //Parameterized test in case we will need to do more testing for birthDate validation
     @ParameterizedTest
@@ -125,9 +117,16 @@ public class UserTest extends AbstractUserTest{
         log.debug("ParameterizedTest registerUser with invalid birthDate" +
                 " value={}", value);
 
-        should_returnBadRequest();
+        registerUser(userDTO).andExpect(status().isBadRequest());
     }
+    @Test
+    public void should_sendVerificationEmail_whenRegisterUser() throws Exception{
+        given_validUserDTO();
+        log.info("Test registerValidUser should receive Email");
 
+        registerUser(userDTO);
+        assertEquals(greenMail.getReceivedMessages().length, 1);
+    }
 
     @Test
     public void should_returnUpdatedUser_whenUpdateUser() throws Exception {
@@ -141,10 +140,7 @@ public class UserTest extends AbstractUserTest{
         log.debug("Test updateUser newUser = {}", userDTO);
         userDTO.setFirstName("newname");
 
-        mockMvc.perform(
-                put("/users/{id}", newUserDTO.getId())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(mapper.writeValueAsString(userDTO)))
+        updateUser(newUserDTO.getId(), userDTO)
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.firstName")
                         .value(userDTO.getFirstName()));
@@ -158,8 +154,7 @@ public class UserTest extends AbstractUserTest{
         User newUser = userRepository.save(user);
         log.debug("Test getUser savedUser = {}", newUser);
 
-        mockMvc.perform(
-                        get("/users/{id}", newUser.getId()))
+       getUser(newUser.getId())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id")
                         .value(newUser.getId()))
@@ -175,16 +170,14 @@ public class UserTest extends AbstractUserTest{
         User newUser = userRepository.save(user);
         log.debug("Test getUser returnNoPassword newUser = {}", userDTO);
 
-        mockMvc.perform(
-                        get("/users/{id}", newUser.getId()))
+        getUser(newUser.getId())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.password")
                         .isEmpty());
     }
     @Test
     public void should_return404_whenGetNonExistentUser() throws Exception {
-        mockMvc.perform(
-                        get("/users/{id}", 1))
+       getUser(1)
                 .andExpect(status().isNotFound());
     }
     @Test
@@ -202,19 +195,20 @@ public class UserTest extends AbstractUserTest{
         assertEquals(userDTO.getLastName(), user.getLastName());
         assertEquals(userDTO.getPhoneNumber(), user.getPhoneNumber());
     }
-
-    //Make tests more readable
-    public void given_validUserDTO(){
-        userDTO = new UserDTO(-1,"Pass1234$12","email@gmail.com",
-                "fname", "lname",
-                LocalDate.now().minusYears(13),
-                "+430000000000", false);
+    public ResultActions registerUser(UserDTO userDTO) throws Exception {
+        return mockMvc.perform(
+                post("/users")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(userDTO)));
     }
-    public void should_returnBadRequest() throws Exception {
-        mockMvc.perform(
-                        post("/users")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(mapper.writeValueAsString(userDTO)))
-                .andExpect(status().isBadRequest());
+    public ResultActions updateUser(int id, UserDTO userDTO) throws Exception {
+        return mockMvc.perform(
+                put("/users/{id}", id)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(userDTO)));
+    }
+    public ResultActions getUser(int id) throws Exception {
+        return mockMvc.perform(
+                get("/users/{id}", id));
     }
 }

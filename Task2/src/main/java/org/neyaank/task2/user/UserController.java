@@ -20,7 +20,6 @@ public class UserController {
     @PostMapping
     public ResponseEntity registerUser(@Valid @RequestBody UserDTO userDto) {
         User user = userMapper.userDTOToUser(userDto);
-        user.setId(null);
         User userResult = userService.registerUser(user);
         UserDTO result = new UserDTO(userResult);
         return ResponseEntity.ok(result);
@@ -30,7 +29,6 @@ public class UserController {
     public ResponseEntity updateUser(@PathVariable int id,
                                      @Valid @RequestBody UserDTO userDto) {
         User user = userMapper.userDTOToUser(userDto);
-        user.setId(null);
         User userResult = userService.updateUser(id, user);
         UserDTO result = new UserDTO(userResult);
         return ResponseEntity.ok(result);

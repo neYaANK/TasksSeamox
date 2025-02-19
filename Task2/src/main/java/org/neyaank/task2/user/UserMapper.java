@@ -15,5 +15,6 @@ public interface UserMapper {
     UserMapper INSTANCE = Mappers.getMapper(UserMapper.class );
 
     UserDTO userToUserDTO(User user);
+    @Mapping(target = "verificationCode", ignore = true)
     User userDTOToUser(UserDTO userDTO);
 }
