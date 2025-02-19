@@ -5,19 +5,15 @@
 
 package org.neyaank.task2.user;
 
-import com.icegreen.greenmail.configuration.GreenMailConfiguration;
-import com.icegreen.greenmail.junit5.GreenMailExtension;
-import com.icegreen.greenmail.store.FolderException;
-import com.icegreen.greenmail.util.ServerSetupTest;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.neyaank.task2.AbstractTest;
 import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.ResultActions;
 
 import java.time.LocalDate;
 
@@ -41,11 +37,7 @@ public class UserTest extends AbstractTest {
     public void should_returnNewUser_whenRegisterValidUser() throws Exception {
         given_validUserDTO();
         log.info("Test registerValidUser user = {}", userDTO);
-
-        mockMvc.perform(
-                post("/users")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(mapper.writeValueAsString(userDTO)))
+        registerUser(userDTO)
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").isNumber());
     }
@@ -54,93 +46,85 @@ public class UserTest extends AbstractTest {
     @ValueSource(strings =
             {"", "Pass$1", "passworddd", "PASSDWORDDD", "$$$$$$$$$$", "Password12",
                     "Password$$", "password$12"})
-    public void should_returnBadRequest_whenInvalidPassword(String value)
+    public void registerUser_whenInvalidPassword(String value)
             throws Exception {
         given_validUserDTO();
         userDTO.setPassword(value);
         log.debug("ParameterizedTest registerUser with invalid password" +
                 " value={}", value);
 
-        should_returnBadRequest();
+        registerUser(userDTO).andExpect(status().isBadRequest());
     }
 
     @ParameterizedTest
     @ValueSource(strings =
             {"", "email", "email.com", "email@", "@email", "@email.com"})
-    public void should_returnBadRequest_whenInvalidEmail(String value)
+    public void registerUser_whenInvalidEmail(String value)
             throws Exception {
         given_validUserDTO();
         userDTO.setEmail(value);
         log.debug("ParameterizedTest registerUser with invalid email" +
                 " value={}", value);
 
-        should_returnBadRequest();
+        registerUser(userDTO).andExpect(status().isBadRequest());
     }
 
     @ParameterizedTest
     @ValueSource(strings =
             {"", "Name12", "1212", "Name$"})
-    public void should_returnBadRequest_whenInvalidFirstName(String value)
+    public void registerUser_whenInvalidFirstName(String value)
             throws Exception {
         given_validUserDTO();
         userDTO.setFirstName(value);
         log.debug("ParameterizedTest registerUser with invalid firstName" +
                 " value={}", value);
 
-        should_returnBadRequest();
+        registerUser(userDTO).andExpect(status().isBadRequest());
     }
 
     @ParameterizedTest
     @ValueSource(strings =
             {"", "Name12", "1212", "Name$"})
-    public void should_returnBadRequest_whenInvalidLastName(String value)
+    public void registerUser_whenInvalidLastName(String value)
             throws Exception {
         given_validUserDTO();
         userDTO.setLastName(value);
         log.debug("ParameterizedTest registerUser with invalid lastName" +
                 " value={}", value);
 
-        should_returnBadRequest();
+        registerUser(userDTO).andExpect(status().isBadRequest());
     }
 
     @ParameterizedTest
     @ValueSource(strings =
             {"", "(044)123321", "123321asd", "123-123", "099999999999999999999", "1"})
-    public void should_returnBadRequest_whenInvalidPhoneNumber(String value)
+    public void registerUser_whenInvalidPhoneNumber(String value)
             throws Exception {
         given_validUserDTO();
         userDTO.setPhoneNumber(value);
         log.debug("ParameterizedTest registerUser with invalid phoneNumber" +
                 " value={}", value);
 
-        should_returnBadRequest();
+        registerUser(userDTO).andExpect(status().isBadRequest());
     }
     //Parameterized test in case we will need to do more testing for birthDate validation
     @ParameterizedTest
     @CsvSource({"2999-01-01"})
-    public void should_returnBadRequest_whenInvalidBirthDate(LocalDate value)
+    public void registerUser_whenInvalidBirthDate(LocalDate value)
             throws Exception {
         given_validUserDTO();
         userDTO.setBirthDate(value);
         log.debug("ParameterizedTest registerUser with invalid birthDate" +
                 " value={}", value);
 
-        should_returnBadRequest();
+        registerUser(userDTO).andExpect(status().isBadRequest());
     }
-    // This test depends on the correct registration test
-    // I am not sure how to test it another way as it is required to write
-    // black box behaviour driven tests and sending email is part of registerUser logic.
-    // Probably I should go for a unit tests that focus on EmailService instead of this
-    // approach.
     @Test
     public void should_sendVerificationEmail_whenRegisterUser() throws Exception{
         given_validUserDTO();
-        log.info("Test registerValidUser email sent");
+        log.info("Test registerValidUser should receive Email");
 
-        mockMvc.perform(
-                        post("/users")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(mapper.writeValueAsString(userDTO)));
+        registerUser(userDTO);
         assertEquals(greenMail.getReceivedMessages().length, 1);
     }
 
@@ -156,10 +140,7 @@ public class UserTest extends AbstractTest {
         log.debug("Test updateUser newUser = {}", userDTO);
         userDTO.setFirstName("newname");
 
-        mockMvc.perform(
-                put("/users/{id}", newUserDTO.getId())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(mapper.writeValueAsString(userDTO)))
+        updateUser(newUserDTO.getId(), userDTO)
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.firstName")
                         .value(userDTO.getFirstName()));
@@ -173,8 +154,7 @@ public class UserTest extends AbstractTest {
         User newUser = userRepository.save(user);
         log.debug("Test getUser savedUser = {}", newUser);
 
-        mockMvc.perform(
-                        get("/users/{id}", newUser.getId()))
+       getUser(newUser.getId())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id")
                         .value(newUser.getId()))
@@ -190,16 +170,14 @@ public class UserTest extends AbstractTest {
         User newUser = userRepository.save(user);
         log.debug("Test getUser returnNoPassword newUser = {}", userDTO);
 
-        mockMvc.perform(
-                        get("/users/{id}", newUser.getId()))
+        getUser(newUser.getId())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.password")
                         .isEmpty());
     }
     @Test
     public void should_return404_whenGetNonExistentUser() throws Exception {
-        mockMvc.perform(
-                        get("/users/{id}", 1))
+       getUser(1)
                 .andExpect(status().isNotFound());
     }
     @Test
@@ -217,12 +195,20 @@ public class UserTest extends AbstractTest {
         assertEquals(userDTO.getLastName(), user.getLastName());
         assertEquals(userDTO.getPhoneNumber(), user.getPhoneNumber());
     }
-
-    public void should_returnBadRequest() throws Exception {
-        mockMvc.perform(
-                        post("/users")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(mapper.writeValueAsString(userDTO)))
-                .andExpect(status().isBadRequest());
+    public ResultActions registerUser(UserDTO userDTO) throws Exception {
+        return mockMvc.perform(
+                post("/users")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(userDTO)));
+    }
+    public ResultActions updateUser(int id, UserDTO userDTO) throws Exception {
+        return mockMvc.perform(
+                put("/users/{id}", id)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(userDTO)));
+    }
+    public ResultActions getUser(int id) throws Exception {
+        return mockMvc.perform(
+                get("/users/{id}", id));
     }
 }

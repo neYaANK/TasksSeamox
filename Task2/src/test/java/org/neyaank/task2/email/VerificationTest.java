@@ -12,6 +12,7 @@ import org.junit.jupiter.api.Test;
 import org.neyaank.task2.AbstractTest;
 import org.neyaank.task2.user.User;
 import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.ResultActions;
 
 import java.util.NoSuchElementException;
 
@@ -40,9 +41,7 @@ public class VerificationTest extends AbstractTest {
         user = userRepository.save(user);
         log.info("Test verifyUser");
 
-        mockMvc.perform(
-                        get("/verification?code={code}",code))
-                .andExpect(status().isOk());
+        verifyUser(code).andExpect(status().isOk());
         user = userRepository.findById(user.getId()).get();
         Assertions.assertEquals(user.isVerified(), true);
     }
@@ -57,8 +56,10 @@ public class VerificationTest extends AbstractTest {
         user = userRepository.save(user);
         log.info("Test verifyUser fail");
 
-        mockMvc.perform(
-                        get("/verification?code=abcdabcd"))
-                .andExpect(status().isNotFound());
+        verifyUser("falseCode").andExpect(status().isNotFound());
+    }
+    public ResultActions verifyUser(String code) throws Exception {
+        return mockMvc.perform(
+                        get("/verification?code={code}", code));
     }
 }

@@ -47,7 +47,6 @@ public class AbstractTest {
     protected UserDTO userDTO;
     protected UserAddressDTO addressDTO;
 
-    //Make tests more readable
     public void given_validUserDTO(){
         userDTO = new UserDTO(-1,"Pass1234$12","email@gmail.com",
                 "fname", "lname",
