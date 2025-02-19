@@ -46,7 +46,7 @@ public class UserTest extends AbstractTest {
     @ValueSource(strings =
             {"", "Pass$1", "passworddd", "PASSDWORDDD", "$$$$$$$$$$", "Password12",
                     "Password$$", "password$12"})
-    public void registerUser_whenInvalidPassword(String value)
+    public void should_returnBadRequest_whenInvalidPassword(String value)
             throws Exception {
         given_validUserDTO();
         userDTO.setPassword(value);
@@ -59,7 +59,7 @@ public class UserTest extends AbstractTest {
     @ParameterizedTest
     @ValueSource(strings =
             {"", "email", "email.com", "email@", "@email", "@email.com"})
-    public void registerUser_whenInvalidEmail(String value)
+    public void should_returnBadRequest_whenInvalidEmail(String value)
             throws Exception {
         given_validUserDTO();
         userDTO.setEmail(value);
@@ -72,7 +72,7 @@ public class UserTest extends AbstractTest {
     @ParameterizedTest
     @ValueSource(strings =
             {"", "Name12", "1212", "Name$"})
-    public void registerUser_whenInvalidFirstName(String value)
+    public void should_returnBadRequest_whenInvalidFirstName(String value)
             throws Exception {
         given_validUserDTO();
         userDTO.setFirstName(value);
@@ -85,7 +85,7 @@ public class UserTest extends AbstractTest {
     @ParameterizedTest
     @ValueSource(strings =
             {"", "Name12", "1212", "Name$"})
-    public void registerUser_whenInvalidLastName(String value)
+    public void should_returnBadRequest_whenInvalidLastName(String value)
             throws Exception {
         given_validUserDTO();
         userDTO.setLastName(value);
@@ -98,7 +98,7 @@ public class UserTest extends AbstractTest {
     @ParameterizedTest
     @ValueSource(strings =
             {"", "(044)123321", "123321asd", "123-123", "099999999999999999999", "1"})
-    public void registerUser_whenInvalidPhoneNumber(String value)
+    public void should_returnBadRequest_whenInvalidPhoneNumber(String value)
             throws Exception {
         given_validUserDTO();
         userDTO.setPhoneNumber(value);
@@ -110,7 +110,7 @@ public class UserTest extends AbstractTest {
     //Parameterized test in case we will need to do more testing for birthDate validation
     @ParameterizedTest
     @CsvSource({"2999-01-01"})
-    public void registerUser_whenInvalidBirthDate(LocalDate value)
+    public void should_returnBadRequest_whenInvalidBirthDate(LocalDate value)
             throws Exception {
         given_validUserDTO();
         userDTO.setBirthDate(value);
