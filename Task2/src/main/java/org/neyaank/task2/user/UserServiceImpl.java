@@ -63,6 +63,17 @@ public class UserServiceImpl implements UserService{
     }
 
     @Override
+    public User findUserByEmail(String email) {
+        Optional<User> user = userRepository.findByEmail(email);
+        if(user.isEmpty()){
+            throw new NotFoundException("User not found");
+        }
+        User toReturn = user.get();
+        toReturn.setPassword("");
+        return toReturn;
+    }
+
+    @Override
     public User getProxyById(int id) {
         User proxy = null;
         try {
