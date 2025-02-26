@@ -42,4 +42,13 @@ public class CustomResponseExceptionHandler {
         log.debug("NotFoundException message={}", e.getMessage());
         return response;
     }
+    @ExceptionHandler(UserNotVerifiedException.class)
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    @ResponseBody
+    public MessageResponse onUserNotVerified(UserNotVerifiedException e){
+        MessageResponse response = new MessageResponse(e.getMessage());
+        log.debug("UserNotVerified message={}", e.getMessage());
+        return response;
+    }
+
 }
