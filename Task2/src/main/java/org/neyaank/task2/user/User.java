@@ -12,6 +12,7 @@ import lombok.Setter;
 import lombok.ToString;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Set;
 
 @ToString
@@ -38,6 +39,9 @@ public class User {
     private String phoneNumber;
     private boolean verified;
     private String verificationCode;
+    private int failedAttempts = 0;
+    private boolean isLocked = false;
+    private LocalDateTime unlockTime;
 
 
     /**
@@ -51,6 +55,12 @@ public class User {
         this.birthDate = source.getBirthDate();
         this.phoneNumber = source.getPhoneNumber();
         this.verified = source.isVerified();
+    }
+    public void incrementFailed(){
+        failedAttempts++;
+    }
+    public void resetFailed(){
+        failedAttempts = 0;
     }
 
 }

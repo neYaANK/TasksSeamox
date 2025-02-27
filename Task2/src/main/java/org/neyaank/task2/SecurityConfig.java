@@ -17,12 +17,12 @@ import lombok.Data;
 import org.neyaank.task2.user.UserSecurityInfoService;
 import org.neyaank.task2.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.AuthenticationProvider;
-import org.springframework.security.authentication.ProviderManager;
+import org.springframework.security.authentication.*;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.SecurityBuilder;
@@ -37,6 +37,7 @@ import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
+import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
 
 import javax.crypto.SecretKey;
@@ -50,7 +51,6 @@ public class SecurityConfig {
     private String key;
     private final UserSecurityInfoService userService;
     private final BCryptPasswordEncoder encoder;
-
     /**
      * Spring Security Endpoint Protection Configuration
      * Right now simply makes all requests authorized as we don't have Auth
@@ -82,5 +82,10 @@ public class SecurityConfig {
         SecretKey skey = new SecretKeySpec(key.getBytes(), "HmacSHA256");
         JWKSource<SecurityContext> immutableSecret = new ImmutableSecret<>(skey);
         return new NimbusJwtEncoder(immutableSecret);
+    }
+    @Bean
+    public AuthenticationEventPublisher authenticationEventPublisher
+            (ApplicationEventPublisher applicationEventPublisher) {
+        return new DefaultAuthenticationEventPublisher(applicationEventPublisher);
     }
 }

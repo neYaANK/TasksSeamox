@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.neyaank.task2.email.EmailService;
 import org.neyaank.task2.errorhandling.NotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -17,6 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -27,9 +29,11 @@ public class UserServiceImpl implements UserService{
     private final UserRepository userRepository;
     private final BCryptPasswordEncoder passwordEncoder;
     private final EmailService emailService;
+    @Value("${neya.login.locktime}")
+    private final int LOCK_MINUTES = 1;
 
     @Override
-    @Transactional(readOnly = false)
+    @Transactional
     public User registerUser(User user) {
         user.setId(null);
         user.setVerified(false);
@@ -42,7 +46,7 @@ public class UserServiceImpl implements UserService{
         return res;
     }
     @Override
-    @Transactional(readOnly = false)
+    @Transactional
     public User updateUser(int id, User user) {
         user.setId(null);
         User toUpdate = userRepository.getReferenceById(id);
@@ -64,13 +68,9 @@ public class UserServiceImpl implements UserService{
 
     @Override
     public User findUserByEmail(String email) {
-        Optional<User> user = userRepository.findByEmail(email);
-        if(user.isEmpty()){
-            throw new NotFoundException("User not found");
-        }
-        User toReturn = user.get();
-        toReturn.setPassword("");
-        return toReturn;
+        User user = findUserByEmailWithPassword(email);
+        user.setPassword("");
+        return user;
     }
 
     @Override
@@ -88,7 +88,7 @@ public class UserServiceImpl implements UserService{
     public boolean existsById(int id) {
         return userRepository.existsById(id);
     }
-    @Transactional(readOnly = false)
+    @Transactional
     @Override
     public void verify(String code) {
         Optional<User> user = userRepository.findByVerificationCode(code);
@@ -100,4 +100,51 @@ public class UserServiceImpl implements UserService{
         newUser.setVerified(true);
         newUser = userRepository.save(newUser);
     }
+    // At first, I wanted to put these methods in AuthService, but I guess I should keep
+    // all methods that utilize UserRepository in one place
+    @Transactional
+    @Override
+    public User incrementFailedAttempts(String email) {
+        User user = findUserByEmailWithPassword(email);
+        user.incrementFailed();
+        user = userRepository.save(user);
+        return user;
+    }
+    @Transactional
+    @Override
+    public User resetFailedAttempts(String email){
+        User user = findUserByEmailWithPassword(email);
+        user.resetFailed();
+        user = userRepository.save(user);
+        return user;
+    }
+    @Transactional
+    @Override
+    public User lockAccount(String email) {
+        User user = findUserByEmailWithPassword(email);
+        user.setLocked(true);
+        user.setUnlockTime(LocalDateTime.now().plusMinutes(LOCK_MINUTES));
+        user = userRepository.save(user);
+        return user;
+    }
+    @Transactional
+    @Override
+    public User unlockAccount(String email){
+        User user = findUserByEmailWithPassword(email);
+        user.setLocked(false);
+        user.setUnlockTime(null);
+        user = userRepository.save(user);
+        return user;
+    }
+
+    //Helper method for easier updating
+    private User findUserByEmailWithPassword(String email) {
+        Optional<User> user = userRepository.findByEmail(email);
+        if(user.isEmpty()){
+            throw new NotFoundException("User not found");
+        }
+        User toReturn = user.get();
+        return toReturn;
+    }
+
 }

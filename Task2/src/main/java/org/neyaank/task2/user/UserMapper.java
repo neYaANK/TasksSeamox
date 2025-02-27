@@ -16,5 +16,8 @@ public interface UserMapper {
 
     UserDTO userToUserDTO(User user);
     @Mapping(target = "verificationCode", ignore = true)
+    @Mapping(target = "failedAttempts", ignore = true)
+    @Mapping(target = "locked", ignore = true)
+    @Mapping(target = "unlockTime", ignore = true)
     User userDTOToUser(UserDTO userDTO);
 }
