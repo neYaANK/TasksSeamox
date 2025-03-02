@@ -71,7 +71,7 @@ public class AuthTest extends AbstractTest {
                 user.getEmail(), userDTO.getPassword());
 
         login(user.getEmail(), userDTO.getPassword())
-                .andExpect(status().isForbidden());
+                .andExpect(status().isUnauthorized());
     }
     @Test
     public void should_lockUser_when_tooManyInvalidAttempts() throws Exception {
