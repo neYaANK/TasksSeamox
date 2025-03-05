@@ -57,18 +57,5 @@ public class CustomResponseExceptionHandler {
         log.debug("AccountLocked message={}", e.getMessage());
         return response;
     }
-//    @ExceptionHandler({UserNotVerifiedException.class, AccountLockedException.class})
-//    @ResponseStatus(HttpStatus.FORBIDDEN)
-//    @ResponseBody
-//    public MessageResponse onUserNotVerified(UserNotVerifiedException e){
-//        MessageResponse response = new MessageResponse(e.getMessage());
-//        log.debug("UserNotVerified message={}", e.getMessage());
-//        return response;
-//    }
-//    @ExceptionHandler({ AuthenticationException.class })
-//    @ResponseBody
-//    public void handleAuthenticationException(Exception ex) {
-//        log.info("TEST");
-//    }
 
 }
