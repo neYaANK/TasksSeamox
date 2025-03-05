@@ -23,7 +23,11 @@ public class UserSecurityInfoService implements UserDetailsService {
         log.debug("Security: loadUserByUsername: Loading user by email {}", username);
         User user = repository.findByEmail(username).orElseThrow(()->
                         new UsernameNotFoundException("Not found user with email " + username));
-        return new UserSecurityInfo(user.getEmail(), user.getPassword());
+        if (!user.isVerified()){
+            throw new UserNotVerifiedException("Can't login user " + user.getEmail()
+                    + " because user is not verified");
+        }
+        return new UserSecurityInfo(user);
     }
 
 }

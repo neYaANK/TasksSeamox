@@ -13,4 +13,8 @@ public interface UserService {
     User getProxyById(int id);
     boolean existsById(int id);
     void verify(String code);
+    User incrementFailedAttempts(String email);
+    User resetFailedAttempts(String email);
+    User lockAccount(String email);
+    User unlockAccount(String email);
 }

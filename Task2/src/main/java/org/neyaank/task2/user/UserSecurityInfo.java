@@ -14,8 +14,7 @@ import java.util.List;
 
 @RequiredArgsConstructor
 public class UserSecurityInfo implements UserDetails {
-    private final String email;
-    private final String password;
+    private final User user;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
@@ -24,11 +23,15 @@ public class UserSecurityInfo implements UserDetails {
 
     @Override
     public String getPassword() {
-        return password;
+        return user.getPassword();
     }
 
     @Override
     public String getUsername() {
-        return email;
+        return user.getEmail();
+    }
+    @Override
+    public boolean isAccountNonLocked() {
+        return !user.isLocked();
     }
 }

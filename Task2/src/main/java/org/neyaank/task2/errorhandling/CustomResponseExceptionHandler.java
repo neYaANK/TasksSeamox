@@ -6,16 +6,15 @@
 package org.neyaank.task2.errorhandling;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.event.EventListener;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
-import org.springframework.web.bind.annotation.ControllerAdvice;
-import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.*;
 
-@ControllerAdvice
+@RestControllerAdvice
 @Slf4j
 public class CustomResponseExceptionHandler {
     /**
@@ -48,6 +47,14 @@ public class CustomResponseExceptionHandler {
     public MessageResponse onUserNotVerified(UserNotVerifiedException e){
         MessageResponse response = new MessageResponse(e.getMessage());
         log.debug("UserNotVerified message={}", e.getMessage());
+        return response;
+    }
+    @ExceptionHandler(AccountLockedException.class)
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    @ResponseBody
+    public MessageResponse onUserNotVerified(AccountLockedException e){
+        MessageResponse response = new MessageResponse(e.getMessage());
+        log.debug("AccountLocked message={}", e.getMessage());
         return response;
     }
 

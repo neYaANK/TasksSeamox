@@ -9,4 +9,7 @@ import org.springframework.security.core.Authentication;
 
 public interface AuthService {
     JwtData authenticate(Authentication auth);
+    void loginSuccess(String email);
+    void loginFailed(String email);
+    User tryUnlock(String email);
 }

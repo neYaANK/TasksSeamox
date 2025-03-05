@@ -12,5 +12,8 @@ create table users(
     birth_date date not null,
     phone_number varchar(50) not null,
     verified boolean not null,
-    verification_code VARCHAR(255)
+    verification_code varchar(255),
+    failed_attempts int not null,
+    is_locked boolean not null,
+    unlock_time timestamp without time zone
 )
