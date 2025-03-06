@@ -7,6 +7,7 @@ package org.neyaank.task2.user;
 
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.neyaank.task2.email.EmailService;
 import org.neyaank.task2.errorhandling.NotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,7 +22,7 @@ import org.springframework.web.server.ResponseStatusException;
 import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
-
+@Slf4j
 @Service
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
@@ -42,17 +43,31 @@ public class UserServiceImpl implements UserService{
         String verification = UUID.randomUUID().toString();
         res.setVerificationCode(verification);
         res = userRepository.save(res);
+        log.info("User registered {}", res);
         emailService.sendVerificationEmail(user.getEmail(), verification);
         return res;
     }
     @Override
     @Transactional
     public User updateUser(int id, User user) {
-        user.setId(null);
-        User toUpdate = userRepository.getReferenceById(id);
-        toUpdate.copy(user);
-        toUpdate.setPassword(passwordEncoder.encode(user.getPassword()));
-        return userRepository.save(toUpdate);
+        User oldUser = findUserById(id);
+        user.setId(id);
+        boolean emailChanged = false;
+        //Request new verification if Email is changed
+        if(!user.getEmail().equals(oldUser.getEmail())) {
+            unverify(oldUser.getEmail());
+            String verification = UUID.randomUUID().toString();
+            user.setVerificationCode(verification);
+            emailChanged = true;
+        }
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
+        user = userRepository.save(user);
+        if(emailChanged) {
+            emailService.sendVerificationEmail(user.getEmail(),
+                    user.getVerificationCode());
+        }
+        log.info("Updating User {} with {}", user.getEmail(), user);
+        return user;
     }
 
     @Override
@@ -99,6 +114,18 @@ public class UserServiceImpl implements UserService{
         newUser.setVerificationCode(null);
         newUser.setVerified(true);
         newUser = userRepository.save(newUser);
+        log.info("User {} is now verified", newUser.getEmail());
+
+    }
+    @Transactional
+    @Override
+    public void unverify(String email) {
+        User user = findUserByEmail(email);
+        user.setVerificationCode(null);
+        user.setVerified(false);
+        user = userRepository.save(user);
+        log.info("User {} is now not verified", email);
+
     }
     // At first, I wanted to put these methods in AuthService, but I guess I should keep
     // all methods that utilize UserRepository in one place
@@ -108,6 +135,8 @@ public class UserServiceImpl implements UserService{
         User user = findUserByEmailWithPassword(email);
         user.incrementFailed();
         user = userRepository.save(user);
+        log.info("Increasing failed login attempts for user {} to {}",
+                user.getEmail(), user.getFailedAttempts());
         return user;
     }
     @Transactional
@@ -116,6 +145,8 @@ public class UserServiceImpl implements UserService{
         User user = findUserByEmailWithPassword(email);
         user.resetFailed();
         user = userRepository.save(user);
+        log.info("Resetting failed login attempts for user {}",
+                user.getEmail());
         return user;
     }
     @Transactional
@@ -125,6 +156,7 @@ public class UserServiceImpl implements UserService{
         user.setLocked(true);
         user.setUnlockTime(LocalDateTime.now().plusMinutes(LOCK_MINUTES));
         user = userRepository.save(user);
+        log.info("Locking user {}", email);
         return user;
     }
     @Transactional
@@ -134,6 +166,7 @@ public class UserServiceImpl implements UserService{
         user.setLocked(false);
         user.setUnlockTime(null);
         user = userRepository.save(user);
+        log.info("Unlocking user {}", email);
         return user;
     }
 

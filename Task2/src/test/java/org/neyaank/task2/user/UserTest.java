@@ -5,6 +5,7 @@
 
 package org.neyaank.task2.user;
 
+import com.icegreen.greenmail.store.FolderException;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -28,9 +29,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 public class UserTest extends AbstractTest {
 
     @AfterEach
-    public void tearDown() {
+    public void tearDown() throws FolderException {
         userRepository.deleteAll();
         userRepository.flush();
+        greenMail.purgeEmailFromAllMailboxes();
     }
 
     @Test
@@ -125,7 +127,7 @@ public class UserTest extends AbstractTest {
         log.info("Test registerValidUser should receive Email");
 
         registerUser(userDTO);
-        assertEquals(greenMail.getReceivedMessages().length, 1);
+        assertEquals(1, greenMail.getReceivedMessages().length);
     }
 
     @Test
@@ -134,7 +136,6 @@ public class UserTest extends AbstractTest {
         User newUser = userMapper.userDTOToUser(userDTO);
         newUser.setId(null);
 
-        //Use repository instead of request to decouple test from save implementation
         newUser = userRepository.save(newUser);
         UserDTO newUserDTO = userMapper.userToUserDTO(newUser);
         log.debug("Test updateUser newUser = {}", userDTO);
@@ -145,6 +146,55 @@ public class UserTest extends AbstractTest {
                 .andExpect(jsonPath("$.firstName")
                         .value(userDTO.getFirstName()));
     }
+
+    @Test
+    public void should_returnUnverifiedUser_whenUpdateEmail() throws Exception {
+        given_validUserDTO();
+        String newEmail = "new.email@test.com";
+        userDTO.setEmail(newEmail);
+        User newUser = userMapper.userDTOToUser(userDTO);
+        newUser.setId(null);
+        newUser = userRepository.save(newUser);
+        UserDTO newUserDTO = userMapper.userToUserDTO(newUser);
+        log.debug("Test updateUser with new Email = {}", userDTO);
+
+        updateUser(newUserDTO.getId(), userDTO)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.email")
+                        .value(newEmail))
+                .andExpect(jsonPath("$.verified")
+                        .value(false));
+    }
+    @Test
+    public void should_sendEmail_whenUpdateEmail() throws Exception {
+        given_validUserDTO();
+        String newEmail = "new.email@test.com";
+        User newUser = userMapper.userDTOToUser(userDTO);
+        userDTO.setEmail(newEmail);
+        newUser.setId(null);
+
+        newUser = userRepository.save(newUser);
+        UserDTO newUserDTO = userMapper.userToUserDTO(newUser);
+        log.debug("Test updateUser sendEmail = {}", userDTO);
+
+        updateUser(newUserDTO.getId(), userDTO);
+        assertEquals(1, greenMail.getReceivedMessages().length);
+    }
+    @Test
+    public void should_sendNoEmail_whenUpdateSameEmail() throws Exception {
+        given_validUserDTO();
+        User newUser = userMapper.userDTOToUser(userDTO);
+        userDTO.setLastName("newLastName");
+        newUser.setId(null);
+
+        newUser = userRepository.save(newUser);
+        UserDTO newUserDTO = userMapper.userToUserDTO(newUser);
+        log.debug("Test updateUser sendEmail = {}", userDTO);
+
+        updateUser(newUserDTO.getId(), userDTO);
+        assertEquals(0, greenMail.getReceivedMessages().length);
+    }
+
     @Test
     public void should_returnUser_whenGetUserById() throws Exception {
         given_validUserDTO();

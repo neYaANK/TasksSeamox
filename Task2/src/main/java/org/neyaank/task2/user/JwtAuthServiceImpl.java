@@ -44,7 +44,6 @@ public class JwtAuthServiceImpl implements AuthService {
         log.debug("Login failed for {}", email);
         User user = userService.incrementFailedAttempts(email);
         if(user.getFailedAttempts() == MAX_ATTEMPTS){
-            log.info("Locking account for {}", email);
             user = userService.resetFailedAttempts(email);
             user = userService.lockAccount(email);
         }
@@ -55,7 +54,6 @@ public class JwtAuthServiceImpl implements AuthService {
         log.debug("Trying to unlock {}...", email);
         User user = userService.findUserByEmail(email);
         if(user.getUnlockTime().isBefore(LocalDateTime.now())){
-            log.info("Account {} is unlocked!", email);
             user = userService.unlockAccount(email);
             return user;
         }

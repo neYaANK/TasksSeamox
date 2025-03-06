@@ -46,7 +46,7 @@ public class UserAddressServiceImpl implements UserAddressService {
 
         Optional<UserAddress> primary = findPrimaryAddress(userId);
         UserAddress address = setNewPrimaryAddress(userAddress, primary);
-        log.debug("UserAddress created {}", userAddress);
+        log.info("UserAddress created {}", userAddress);
         return address;
     }
 
@@ -69,13 +69,14 @@ public class UserAddressServiceImpl implements UserAddressService {
         userAddress.setUser(oldAddress.get().getUser());
         Optional<UserAddress> primary = findPrimaryAddress(userId);
         UserAddress address = setNewPrimaryAddress(userAddress, primary);
-        log.debug("UserAddress with id {} updated, new = {}",id, userAddress);
+        log.info("UserAddress with id {} updated, new = {}",id, userAddress);
         return address;
     }
 
     @Override
     @Transactional(readOnly = true)
     public void deleteUserAddressOfAUser(int userId, int id) {
+        log.info("UserAddress with id {} at Userid {} deleted", id, userId);
         userAddressRepository.deleteByIdAndUserId(userId, id);
     }
     @Override
