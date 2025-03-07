@@ -47,6 +47,7 @@ public class UserServiceImpl implements UserService{
         emailService.sendVerificationEmail(user.getEmail(), verification);
         return res;
     }
+
     @Override
     @Transactional
     public User updateUser(int id, User user) {
@@ -103,6 +104,7 @@ public class UserServiceImpl implements UserService{
     public boolean existsById(int id) {
         return userRepository.existsById(id);
     }
+
     @Transactional
     @Override
     public void verify(String code) {
@@ -115,8 +117,8 @@ public class UserServiceImpl implements UserService{
         newUser.setVerified(true);
         newUser = userRepository.save(newUser);
         log.info("User {} is now verified", newUser.getEmail());
-
     }
+
     @Transactional
     @Override
     public void unverify(String email) {
@@ -125,8 +127,8 @@ public class UserServiceImpl implements UserService{
         user.setVerified(false);
         user = userRepository.save(user);
         log.info("User {} is now not verified", email);
-
     }
+
     // At first, I wanted to put these methods in AuthService, but I guess I should keep
     // all methods that utilize UserRepository in one place
     @Transactional
@@ -139,6 +141,7 @@ public class UserServiceImpl implements UserService{
                 user.getEmail(), user.getFailedAttempts());
         return user;
     }
+
     @Transactional
     @Override
     public User resetFailedAttempts(String email){
@@ -149,6 +152,7 @@ public class UserServiceImpl implements UserService{
                 user.getEmail());
         return user;
     }
+
     @Transactional
     @Override
     public User lockAccount(String email) {
@@ -159,6 +163,7 @@ public class UserServiceImpl implements UserService{
         log.info("Locking user {}", email);
         return user;
     }
+
     @Transactional
     @Override
     public User unlockAccount(String email){

@@ -27,17 +27,14 @@ public class AuthHandler{
     @EventListener
     public void onFailure(AuthenticationFailureBadCredentialsEvent failures) {
         authService.loginFailed(failures.getAuthentication().getName());
-
     }
+
     @EventListener
     public void onLocked(AuthenticationFailureLockedEvent locked){
         User user = authService
                 .tryUnlock(locked.getAuthentication().getName());
         // Can't handle custom Exception, so now it returns 401 if account's locked
         // instead of 403
-//        if(user.isLocked()){
-//            throw new AccountLockedException(user.getUnlockTime());
-//        }
         authService.authenticate(locked.getAuthentication());
     }
 

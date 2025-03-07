@@ -26,6 +26,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 public class UserAddressTest extends AbstractTest {
 
     private int createdUserId = 1;
+
     @BeforeEach
     public void setUp() {
         User user = new User();
@@ -39,11 +40,13 @@ public class UserAddressTest extends AbstractTest {
         user = userRepository.save(user);
         createdUserId = user.getId();
     }
+
     @AfterEach
     public void tearDown(){
         addressRepository.deleteAll();
         userRepository.deleteAll();
     }
+
     @Test
     public void should_returnNewAddress_when_createValidAddress() throws Exception {
         given_validUserAddressDTO();
@@ -56,6 +59,7 @@ public class UserAddressTest extends AbstractTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").isNumber());
     }
+
     @Test
     public void should_returnNotFound_when_createAddressWithNonExistentUser() throws Exception {
         given_validUserAddressDTO();
@@ -67,6 +71,7 @@ public class UserAddressTest extends AbstractTest {
                                 .content(mapper.writeValueAsString(addressDTO)))
                 .andExpect(status().isNotFound());
     }
+
     @Test
     public void should_createPrimaryAddress_when_createAddressWithoutAddresses() throws Exception{
         given_validUserAddressDTO();
@@ -79,6 +84,7 @@ public class UserAddressTest extends AbstractTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.primary").value(true));
     }
+
     @Test
     public void should_replacePrimary_when_createAddressWithExistingPrimary() throws Exception{
         given_validUserAddressDTO();
@@ -119,6 +125,7 @@ public class UserAddressTest extends AbstractTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.city").value("CHANGED"));
     }
+
     @Test
     public void should_returnNotFound_when_updateAddressWithNonExistentUser() throws Exception {
         given_validUserAddressDTO();
@@ -167,6 +174,7 @@ public class UserAddressTest extends AbstractTest {
                                 createdUserId, address.getId()))
                 .andExpect(status().isOk());
     }
+
     @Test
     public void should_returnNotFound_when_deleteNonExistentUser() throws Exception {
         given_validUserAddressDTO();
@@ -179,6 +187,7 @@ public class UserAddressTest extends AbstractTest {
                                 -1, address.getId()))
                 .andExpect(status().isOk());
     }
+
     @Test
     public void should_returnNotFound_when_deleteNonExistentAddress() throws Exception {
         given_validUserAddressDTO();
@@ -187,6 +196,7 @@ public class UserAddressTest extends AbstractTest {
                                 createdUserId, -1))
                 .andExpect(status().isOk());
     }
+
     @ParameterizedTest
     @ValueSource(strings =
             {"", "AUSTRIA", "aus", "au5"})

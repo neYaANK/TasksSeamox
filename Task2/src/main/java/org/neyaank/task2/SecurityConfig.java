@@ -51,6 +51,7 @@ public class SecurityConfig {
     private String key;
     private final UserSecurityInfoService userService;
     private final BCryptPasswordEncoder encoder;
+
     /**
      * Spring Security Endpoint Protection Configuration
      * Right now simply makes all requests authorized as we don't have Auth
@@ -70,6 +71,7 @@ public class SecurityConfig {
 
         return http.build();
     }
+
     @Bean
     public JwtDecoder jwtDecoder(){
         SecretKey skey = new SecretKeySpec(key.getBytes(), "HmacSHA256");
@@ -83,6 +85,7 @@ public class SecurityConfig {
         JWKSource<SecurityContext> immutableSecret = new ImmutableSecret<>(skey);
         return new NimbusJwtEncoder(immutableSecret);
     }
+
     @Bean
     public AuthenticationEventPublisher authenticationEventPublisher
             (ApplicationEventPublisher applicationEventPublisher) {

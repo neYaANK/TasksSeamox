@@ -27,8 +27,10 @@ import java.util.UUID;
 @AutoConfigureMockMvc
 public class AbstractTest {
     @RegisterExtension
-    protected static GreenMailExtension greenMail = new GreenMailExtension(ServerSetupTest.SMTP)
-            .withConfiguration(GreenMailConfiguration.aConfig().withUser("user", "admin"))
+    protected static GreenMailExtension greenMail =
+            new GreenMailExtension(ServerSetupTest.SMTP)
+            .withConfiguration(GreenMailConfiguration.aConfig()
+                    .withUser("user", "admin"))
             .withPerMethodLifecycle(false);
     @Autowired
     protected static JavaMailSender mailSender;
@@ -53,6 +55,7 @@ public class AbstractTest {
                 LocalDate.now().minusYears(13),
                 "+430000000000", false);
     }
+
     public void given_validUserAddressDTO(){
         addressDTO = new UserAddressDTO(null,"AUT", "10000",
                 "Vienna", "Strasse 1", "abcd", false);

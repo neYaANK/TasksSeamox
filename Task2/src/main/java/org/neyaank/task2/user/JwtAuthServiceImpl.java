@@ -26,6 +26,7 @@ public class JwtAuthServiceImpl implements AuthService {
     private final UserService userService;
     @Value("${neya.login.attempts}")
     private int MAX_ATTEMPTS;
+
     @Override
     public JwtData authenticate(Authentication auth) {
         User user = userService.findUserByEmail(auth.getName());
@@ -35,7 +36,6 @@ public class JwtAuthServiceImpl implements AuthService {
 
     @Override
     public void loginSuccess(String email) {
-
         User user = userService.resetFailedAttempts(email);
     }
 

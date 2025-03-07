@@ -23,6 +23,7 @@ public class UserAddressServiceImpl implements UserAddressService {
     private final UserAddressRepository addressRepository;
     private final UserAddressRepository userAddressRepository;
     private final UserService userService;
+
     @Override
     public UserAddress getUserAddressByIdAndUserId(int userId, int id) {
         Optional<UserAddress> userAddress =
@@ -49,7 +50,6 @@ public class UserAddressServiceImpl implements UserAddressService {
         log.info("UserAddress created {}", userAddress);
         return address;
     }
-
 
     @Override
     @Transactional(readOnly = true)
@@ -79,6 +79,7 @@ public class UserAddressServiceImpl implements UserAddressService {
         log.info("UserAddress with id {} at Userid {} deleted", id, userId);
         userAddressRepository.deleteByIdAndUserId(userId, id);
     }
+
     @Override
     public List<UserAddress> getAddressesOfUser(int userId) {
         if(!userService.existsById(userId)){
