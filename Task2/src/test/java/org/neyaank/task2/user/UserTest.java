@@ -5,6 +5,7 @@
 
 package org.neyaank.task2.user;
 
+import com.icegreen.greenmail.store.FolderException;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -28,9 +29,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 public class UserTest extends AbstractTest {
 
     @AfterEach
-    public void tearDown() {
+    public void tearDown() throws FolderException {
         userRepository.deleteAll();
         userRepository.flush();
+        greenMail.purgeEmailFromAllMailboxes();
     }
 
     @Test
@@ -107,6 +109,7 @@ public class UserTest extends AbstractTest {
 
         registerUser(userDTO).andExpect(status().isBadRequest());
     }
+
     //Parameterized test in case we will need to do more testing for birthDate validation
     @ParameterizedTest
     @CsvSource({"2999-01-01"})
@@ -119,13 +122,14 @@ public class UserTest extends AbstractTest {
 
         registerUser(userDTO).andExpect(status().isBadRequest());
     }
+
     @Test
     public void should_sendVerificationEmail_whenRegisterUser() throws Exception{
         given_validUserDTO();
         log.info("Test registerValidUser should receive Email");
 
         registerUser(userDTO);
-        assertEquals(greenMail.getReceivedMessages().length, 1);
+        assertEquals(1, greenMail.getReceivedMessages().length);
     }
 
     @Test
@@ -134,7 +138,6 @@ public class UserTest extends AbstractTest {
         User newUser = userMapper.userDTOToUser(userDTO);
         newUser.setId(null);
 
-        //Use repository instead of request to decouple test from save implementation
         newUser = userRepository.save(newUser);
         UserDTO newUserDTO = userMapper.userToUserDTO(newUser);
         log.debug("Test updateUser newUser = {}", userDTO);
@@ -145,6 +148,57 @@ public class UserTest extends AbstractTest {
                 .andExpect(jsonPath("$.firstName")
                         .value(userDTO.getFirstName()));
     }
+
+    @Test
+    public void should_returnUnverifiedUser_whenUpdateEmail() throws Exception {
+        given_validUserDTO();
+        String newEmail = "new.email@test.com";
+        userDTO.setEmail(newEmail);
+        User newUser = userMapper.userDTOToUser(userDTO);
+        newUser.setId(null);
+        newUser = userRepository.save(newUser);
+        UserDTO newUserDTO = userMapper.userToUserDTO(newUser);
+        log.debug("Test updateUser with new Email = {}", userDTO);
+
+        updateUser(newUserDTO.getId(), userDTO)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.email")
+                        .value(newEmail))
+                .andExpect(jsonPath("$.verified")
+                        .value(false));
+    }
+
+    @Test
+    public void should_sendEmail_whenUpdateEmail() throws Exception {
+        given_validUserDTO();
+        String newEmail = "new.email@test.com";
+        User newUser = userMapper.userDTOToUser(userDTO);
+        userDTO.setEmail(newEmail);
+        newUser.setId(null);
+
+        newUser = userRepository.save(newUser);
+        UserDTO newUserDTO = userMapper.userToUserDTO(newUser);
+        log.debug("Test updateUser sendEmail = {}", userDTO);
+
+        updateUser(newUserDTO.getId(), userDTO);
+        assertEquals(1, greenMail.getReceivedMessages().length);
+    }
+
+    @Test
+    public void should_sendNoEmail_whenUpdateSameEmail() throws Exception {
+        given_validUserDTO();
+        User newUser = userMapper.userDTOToUser(userDTO);
+        userDTO.setLastName("newLastName");
+        newUser.setId(null);
+
+        newUser = userRepository.save(newUser);
+        UserDTO newUserDTO = userMapper.userToUserDTO(newUser);
+        log.debug("Test updateUser sendEmail = {}", userDTO);
+
+        updateUser(newUserDTO.getId(), userDTO);
+        assertEquals(0, greenMail.getReceivedMessages().length);
+    }
+
     @Test
     public void should_returnUser_whenGetUserById() throws Exception {
         given_validUserDTO();
@@ -161,6 +215,7 @@ public class UserTest extends AbstractTest {
                 .andExpect(jsonPath("$.email")
                         .value(user.getEmail()));
     }
+
     @Test
     public void should_returnNoPassword_whenGetUserById() throws Exception {
         given_validUserDTO();
@@ -175,11 +230,13 @@ public class UserTest extends AbstractTest {
                 .andExpect(jsonPath("$.password")
                         .isEmpty());
     }
+
     @Test
     public void should_return404_whenGetNonExistentUser() throws Exception {
        getUser(1)
                 .andExpect(status().isNotFound());
     }
+
     @Test
     public void should_mapUserCorrectly_whenMapUserDtoToUser(){
         given_validUserDTO();
@@ -195,18 +252,21 @@ public class UserTest extends AbstractTest {
         assertEquals(userDTO.getLastName(), user.getLastName());
         assertEquals(userDTO.getPhoneNumber(), user.getPhoneNumber());
     }
+
     public ResultActions registerUser(UserDTO userDTO) throws Exception {
         return mockMvc.perform(
                 post("/users")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(mapper.writeValueAsString(userDTO)));
     }
+
     public ResultActions updateUser(int id, UserDTO userDTO) throws Exception {
         return mockMvc.perform(
                 put("/users/{id}", id)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(mapper.writeValueAsString(userDTO)));
     }
+
     public ResultActions getUser(int id) throws Exception {
         return mockMvc.perform(
                 get("/users/{id}", id));

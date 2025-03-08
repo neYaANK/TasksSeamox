@@ -20,6 +20,7 @@ public class AppConfig {
     public BCryptPasswordEncoder bCryptPasswordEncoder() {
         return new BCryptPasswordEncoder();
     }
+
     // I have another locale set as the default one.
     // That's why I set it here to English, so that validation auto-generated
     // messages are going to be in English too

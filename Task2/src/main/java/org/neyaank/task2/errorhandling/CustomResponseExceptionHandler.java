@@ -33,6 +33,7 @@ public class CustomResponseExceptionHandler {
         }
         return response;
     }
+
     @ExceptionHandler(NotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
     @ResponseBody
@@ -41,6 +42,7 @@ public class CustomResponseExceptionHandler {
         log.debug("NotFoundException message={}", e.getMessage());
         return response;
     }
+
     @ExceptionHandler(UserNotVerifiedException.class)
     @ResponseStatus(HttpStatus.FORBIDDEN)
     @ResponseBody
@@ -49,6 +51,7 @@ public class CustomResponseExceptionHandler {
         log.debug("UserNotVerified message={}", e.getMessage());
         return response;
     }
+
     @ExceptionHandler(AccountLockedException.class)
     @ResponseStatus(HttpStatus.FORBIDDEN)
     @ResponseBody

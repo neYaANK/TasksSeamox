@@ -19,6 +19,7 @@ import java.util.List;
 public class UserAddressController {
     private final UserAddressService addressService;
     private final UserAddressMapper addressMapper;
+
     @PostMapping
     public ResponseEntity create(@PathVariable(name = "userId") int userId,
                                  @Valid @RequestBody UserAddressDTO userAddress) {
@@ -27,6 +28,7 @@ public class UserAddressController {
         UserAddressDTO responseAddress = addressMapper.toDTO(created);
         return ResponseEntity.ok(responseAddress);
     }
+
     @GetMapping
     public ResponseEntity read(@PathVariable(name = "userId") int userId) {
         List<UserAddress> userAddressList = addressService.getAddressesOfUser(userId);
@@ -34,6 +36,7 @@ public class UserAddressController {
                 .map(address -> addressMapper.toDTO(address)).toList();
         return ResponseEntity.ok(response);
     }
+
     @PutMapping("/{addressId}")
     public ResponseEntity update(@PathVariable(name = "userId") int userId,
                                  @PathVariable(name = "addressId") int addressId,
@@ -43,12 +46,12 @@ public class UserAddressController {
         UserAddressDTO responseAddress = addressMapper.toDTO(address);
         return ResponseEntity.ok(responseAddress);
     }
+
     @DeleteMapping("/{addressId}")
     public ResponseEntity delete(@PathVariable(name = "userId") int userId,
                                  @PathVariable(name = "addressId") int addressId) {
         addressService.deleteUserAddressOfAUser(addressId, userId);
         return ResponseEntity.ok().build();
     }
-
 
 }

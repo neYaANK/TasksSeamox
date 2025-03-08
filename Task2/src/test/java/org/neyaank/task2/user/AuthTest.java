@@ -23,10 +23,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 public class AuthTest extends AbstractTest {
     @Autowired
     BCryptPasswordEncoder encoder;
+
     @AfterEach
     public void tearDown(){
         userRepository.deleteAll();
     }
+
     @Test
     public void should_returnJwt_when_validCredentials() throws Exception {
         given_validUserDTO();
@@ -59,6 +61,7 @@ public class AuthTest extends AbstractTest {
         login(user.getEmail(), "InvalidPassword1212")
                 .andExpect(status().isUnauthorized());
     }
+
     @Test
     public void should_return403_when_userNotVerified() throws Exception {
         given_validUserDTO();
@@ -73,6 +76,7 @@ public class AuthTest extends AbstractTest {
         login(user.getEmail(), userDTO.getPassword())
                 .andExpect(status().isUnauthorized());
     }
+
     @Test
     public void should_lockUser_when_tooManyInvalidAttempts() throws Exception {
         given_validUserDTO();
@@ -94,6 +98,7 @@ public class AuthTest extends AbstractTest {
                 userRepository.findById(user.getId()).get().isLocked());
 
     }
+
     public ResultActions login(String username, String password) throws Exception {
         return mockMvc.perform(get("/login")
                         .with(httpBasic(username, password))
