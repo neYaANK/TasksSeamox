@@ -15,5 +15,6 @@ create table users(
     verification_code varchar(255),
     failed_attempts int not null,
     is_locked boolean not null,
-    unlock_time timestamp without time zone
+    unlock_time timestamp without time zone,
+    verification_start_time timestamp without time zone
 )

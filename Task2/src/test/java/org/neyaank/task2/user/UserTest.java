@@ -13,11 +13,17 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.neyaank.task2.AbstractTest;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.ResultActions;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.concurrent.Callable;
+import java.util.concurrent.TimeUnit;
 
+import static org.awaitility.Awaitility.await;
+import static org.hamcrest.Matchers.equalTo;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
@@ -27,6 +33,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @Slf4j
 public class UserTest extends AbstractTest {
+    @Value("${neya.scheduler.delay}")
+    private int schedulerRate;
 
     @AfterEach
     public void tearDown() throws FolderException {
@@ -36,7 +44,7 @@ public class UserTest extends AbstractTest {
     }
 
     @Test
-    public void should_returnNewUser_whenRegisterValidUser() throws Exception {
+    public void should_returnNewUser_when_registerValidUser() throws Exception {
         given_validUserDTO();
         log.info("Test registerValidUser user = {}", userDTO);
         registerUser(userDTO)
@@ -48,7 +56,7 @@ public class UserTest extends AbstractTest {
     @ValueSource(strings =
             {"", "Pass$1", "passworddd", "PASSDWORDDD", "$$$$$$$$$$", "Password12",
                     "Password$$", "password$12"})
-    public void should_returnBadRequest_whenInvalidPassword(String value)
+    public void should_returnBadRequest_when_invalidPassword(String value)
             throws Exception {
         given_validUserDTO();
         userDTO.setPassword(value);
@@ -61,7 +69,7 @@ public class UserTest extends AbstractTest {
     @ParameterizedTest
     @ValueSource(strings =
             {"", "email", "email.com", "email@", "@email", "@email.com"})
-    public void should_returnBadRequest_whenInvalidEmail(String value)
+    public void should_returnBadRequest_when_invalidEmail(String value)
             throws Exception {
         given_validUserDTO();
         userDTO.setEmail(value);
@@ -74,7 +82,7 @@ public class UserTest extends AbstractTest {
     @ParameterizedTest
     @ValueSource(strings =
             {"", "Name12", "1212", "Name$"})
-    public void should_returnBadRequest_whenInvalidFirstName(String value)
+    public void should_returnBadRequest_when_invalidFirstName(String value)
             throws Exception {
         given_validUserDTO();
         userDTO.setFirstName(value);
@@ -87,7 +95,7 @@ public class UserTest extends AbstractTest {
     @ParameterizedTest
     @ValueSource(strings =
             {"", "Name12", "1212", "Name$"})
-    public void should_returnBadRequest_whenInvalidLastName(String value)
+    public void should_returnBadRequest_when_invalidLastName(String value)
             throws Exception {
         given_validUserDTO();
         userDTO.setLastName(value);
@@ -100,7 +108,7 @@ public class UserTest extends AbstractTest {
     @ParameterizedTest
     @ValueSource(strings =
             {"", "(044)123321", "123321asd", "123-123", "099999999999999999999", "1"})
-    public void should_returnBadRequest_whenInvalidPhoneNumber(String value)
+    public void should_returnBadRequest_when_invalidPhoneNumber(String value)
             throws Exception {
         given_validUserDTO();
         userDTO.setPhoneNumber(value);
@@ -113,7 +121,7 @@ public class UserTest extends AbstractTest {
     //Parameterized test in case we will need to do more testing for birthDate validation
     @ParameterizedTest
     @CsvSource({"2999-01-01"})
-    public void should_returnBadRequest_whenInvalidBirthDate(LocalDate value)
+    public void should_returnBadRequest_when_invalidBirthDate(LocalDate value)
             throws Exception {
         given_validUserDTO();
         userDTO.setBirthDate(value);
@@ -124,7 +132,7 @@ public class UserTest extends AbstractTest {
     }
 
     @Test
-    public void should_sendVerificationEmail_whenRegisterUser() throws Exception{
+    public void should_sendVerificationEmail_when_registerUser() throws Exception{
         given_validUserDTO();
         log.info("Test registerValidUser should receive Email");
 
@@ -133,7 +141,7 @@ public class UserTest extends AbstractTest {
     }
 
     @Test
-    public void should_returnUpdatedUser_whenUpdateUser() throws Exception {
+    public void should_returnUpdatedUser_when_updateUser() throws Exception {
         given_validUserDTO();
         User newUser = userMapper.userDTOToUser(userDTO);
         newUser.setId(null);
@@ -150,7 +158,7 @@ public class UserTest extends AbstractTest {
     }
 
     @Test
-    public void should_returnUnverifiedUser_whenUpdateEmail() throws Exception {
+    public void should_returnUnverifiedUser_when_updateEmail() throws Exception {
         given_validUserDTO();
         String newEmail = "new.email@test.com";
         userDTO.setEmail(newEmail);
@@ -169,7 +177,7 @@ public class UserTest extends AbstractTest {
     }
 
     @Test
-    public void should_sendEmail_whenUpdateEmail() throws Exception {
+    public void should_sendEmail_when_updateEmail() throws Exception {
         given_validUserDTO();
         String newEmail = "new.email@test.com";
         User newUser = userMapper.userDTOToUser(userDTO);
@@ -185,7 +193,7 @@ public class UserTest extends AbstractTest {
     }
 
     @Test
-    public void should_sendNoEmail_whenUpdateSameEmail() throws Exception {
+    public void should_sendNoEmail_when_updateSameEmail() throws Exception {
         given_validUserDTO();
         User newUser = userMapper.userDTOToUser(userDTO);
         userDTO.setLastName("newLastName");
@@ -200,7 +208,7 @@ public class UserTest extends AbstractTest {
     }
 
     @Test
-    public void should_returnUser_whenGetUserById() throws Exception {
+    public void should_returnUser_when_uetUserById() throws Exception {
         given_validUserDTO();
         User user = userMapper.userDTOToUser(userDTO);
         user.setId(null);
@@ -217,7 +225,7 @@ public class UserTest extends AbstractTest {
     }
 
     @Test
-    public void should_returnNoPassword_whenGetUserById() throws Exception {
+    public void should_returnNoPassword_when_getUserById() throws Exception {
         given_validUserDTO();
         User user = userMapper.userDTOToUser(userDTO);
         user.setId(null);
@@ -232,13 +240,13 @@ public class UserTest extends AbstractTest {
     }
 
     @Test
-    public void should_return404_whenGetNonExistentUser() throws Exception {
+    public void should_return404_when_getNonExistentUser() throws Exception {
        getUser(1)
                 .andExpect(status().isNotFound());
     }
 
     @Test
-    public void should_mapUserCorrectly_whenMapUserDtoToUser(){
+    public void should_mapUserCorrectly_when_mapUserDtoToUser(){
         given_validUserDTO();
 
         User user = userMapper.userDTOToUser(userDTO);
@@ -251,6 +259,34 @@ public class UserTest extends AbstractTest {
         assertEquals(userDTO.getFirstName(), user.getFirstName());
         assertEquals(userDTO.getLastName(), user.getLastName());
         assertEquals(userDTO.getPhoneNumber(), user.getPhoneNumber());
+    }
+
+    @Test
+    public void should_deleteUser_when_scheduledDeletion() throws InterruptedException{
+        given_validUserDTO();
+        userDTO.setId(null);
+        User user1 = userMapper.userDTOToUser(userDTO);
+        user1.setVerificationStartTime(LocalDateTime.now().minusHours(30));
+        log.debug("Test scheduleDeletion when user is old enough to be deleted {}",
+                user1);
+        userRepository.save(user1);
+        await()
+                .atMost(schedulerRate, TimeUnit.SECONDS)
+                .until(()-> userRepository.findAll().isEmpty());
+    }
+
+    @Test
+    public void should_notDeleteUser_when_scheduledDeletion() throws InterruptedException{
+        given_validUserDTO();
+        userDTO.setId(null);
+        User user1 = userMapper.userDTOToUser(userDTO);
+        user1.setVerificationStartTime(LocalDateTime.now().minusHours(23));
+        log.debug("Test scheduleDeletion when user is not old enough to be deleted {}",
+                user1);
+        userRepository.save(user1);
+        await()
+                .atMost(schedulerRate, TimeUnit.SECONDS)
+                .until(()->userRepository.findAll().size() == 1);
     }
 
     public ResultActions registerUser(UserDTO userDTO) throws Exception {

@@ -19,5 +19,6 @@ public interface UserMapper {
     @Mapping(target = "failedAttempts", ignore = true)
     @Mapping(target = "locked", ignore = true)
     @Mapping(target = "unlockTime", ignore = true)
+    @Mapping(target = "verificationStartTime", ignore = true)
     User userDTOToUser(UserDTO userDTO);
 }
