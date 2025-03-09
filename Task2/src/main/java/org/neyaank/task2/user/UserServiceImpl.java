@@ -14,14 +14,18 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
+
 @Slf4j
 @Service
 @Transactional(readOnly = true)
@@ -33,16 +37,18 @@ public class UserServiceImpl implements UserService{
     @Value("${neya.login.locktime}")
     private final int LOCK_MINUTES = 1;
 
+
+
     @Override
     @Transactional
     public User registerUser(User user) {
         user.setId(null);
         user.setVerified(false);
         user.setPassword(passwordEncoder.encode(user.getPassword()));
-        User res = userRepository.save(user);
         String verification = UUID.randomUUID().toString();
-        res.setVerificationCode(verification);
-        res = userRepository.save(res);
+        user.setVerificationCode(verification);
+        user.setVerificationStartTime(LocalDateTime.now());
+        User res = userRepository.save(user);
         log.info("User registered {}", res);
         emailService.sendVerificationEmail(user.getEmail(), verification);
         return res;
@@ -59,6 +65,7 @@ public class UserServiceImpl implements UserService{
             unverify(oldUser.getEmail());
             String verification = UUID.randomUUID().toString();
             user.setVerificationCode(verification);
+            user.setVerificationStartTime(LocalDateTime.now());
             emailChanged = true;
         }
         user.setPassword(passwordEncoder.encode(user.getPassword()));
@@ -173,6 +180,14 @@ public class UserServiceImpl implements UserService{
         user = userRepository.save(user);
         log.info("Unlocking user {}", email);
         return user;
+    }
+
+    @Override
+    public int deleteUnverifiedOldUsers(int hoursAgeUntilDeletion) {
+        int affected = userRepository.deleteUnverifiedAndOldEnough(
+                LocalDateTime.now().minusHours(hoursAgeUntilDeletion));
+        log.info("{} unverified users deleted", affected);
+        return affected;
     }
 
     //Helper method for easier updating

@@ -18,4 +18,5 @@ public interface UserService {
     User resetFailedAttempts(String email);
     User lockAccount(String email);
     User unlockAccount(String email);
+    int deleteUnverifiedOldUsers(int hoursAgeUntilDeletion);
 }

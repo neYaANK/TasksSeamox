@@ -42,6 +42,7 @@ public class User {
     private int failedAttempts = 0;
     private boolean isLocked = false;
     private LocalDateTime unlockTime;
+    private LocalDateTime verificationStartTime;
 
 
     /**
