@@ -267,10 +267,15 @@ public class UserTest extends AbstractTest {
         userDTO.setId(null);
         User user1 = userMapper.userDTOToUser(userDTO);
         user1.setVerificationStartTime(LocalDateTime.now().minusHours(30));
-
+        User user2 = userMapper.userDTOToUser(userDTO);
+        user2.setVerificationStartTime(LocalDateTime.now().minusHours(30));
+        user2.setEmail("email2@email.com");
         log.debug("Test scheduleDeletion when user is old enough to be deleted {}",
                 user1);
+
         userRepository.save(user1);
+        userRepository.save(user2);
+
         await()
                 .atMost(schedulerRate*2, TimeUnit.SECONDS)
                 .pollInterval(1, TimeUnit.SECONDS)
@@ -286,7 +291,9 @@ public class UserTest extends AbstractTest {
         user1.setVerificationStartTime(LocalDateTime.now().minusHours(23));
         log.debug("Test scheduleDeletion when user is not old enough to be deleted {}",
                 user1);
+
         userRepository.save(user1);
+
         await()
                 .atMost(schedulerRate*2, TimeUnit.SECONDS)
                 .pollInterval(1, TimeUnit.SECONDS)

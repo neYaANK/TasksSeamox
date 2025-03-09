@@ -38,17 +38,17 @@ public class UserServiceImpl implements UserService{
     private final int LOCK_MINUTES = 1;
     private final int UNVERIFIED_DELETION_HOURS = 24;
 
+    @Transactional
     @Scheduled(fixedRateString = "${neya.scheduler.delay}",
             timeUnit = TimeUnit.SECONDS)
     public void scheduleUnverifiedCleaning(){
         log.debug("Unverified cleaning started");
-        List<User> users = userRepository
+        List<User> affectedUsers = userRepository
                 .findAllByVerificationStartTimeLessThanEqualAndVerifiedFalse(
                         LocalDateTime.now().minusHours(UNVERIFIED_DELETION_HOURS));
-        log.debug("{} unverified users for deletion found", users.size());
-        userRepository.deleteAll(users);
-        userRepository.flush();
-        log.info("{} unverified users deleted", users.size());
+        log.debug("{} unverified users found for deletion", affectedUsers.size());
+        userRepository.deleteAllInBatch(affectedUsers);
+        log.info("{} unverified users deleted", affectedUsers.size());
     }
 
     @Override

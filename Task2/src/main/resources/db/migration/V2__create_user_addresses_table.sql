@@ -12,5 +12,5 @@ create table user_addresses(
     details varchar(255) not null,
     user_id int,
     is_primary boolean not null,
-    CONSTRAINT fk_user FOREIGN KEY(user_id) REFERENCES users(user_id)
+    CONSTRAINT fk_user FOREIGN KEY(user_id) REFERENCES users(user_id) ON DELETE CASCADE
 )
