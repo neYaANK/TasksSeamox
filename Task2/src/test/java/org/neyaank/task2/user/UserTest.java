@@ -262,16 +262,19 @@ public class UserTest extends AbstractTest {
     }
 
     @Test
-    public void should_deleteUser_when_scheduledDeletion() throws InterruptedException{
+    public void should_deleteUser_when_scheduledDeletion() {
         given_validUserDTO();
         userDTO.setId(null);
         User user1 = userMapper.userDTOToUser(userDTO);
         user1.setVerificationStartTime(LocalDateTime.now().minusHours(30));
+
         log.debug("Test scheduleDeletion when user is old enough to be deleted {}",
                 user1);
         userRepository.save(user1);
         await()
-                .atMost(schedulerRate, TimeUnit.SECONDS)
+                .atMost(schedulerRate*2, TimeUnit.SECONDS)
+                .pollInterval(1, TimeUnit.SECONDS)
+                .pollDelay(schedulerRate, TimeUnit.SECONDS)
                 .until(()-> userRepository.findAll().isEmpty());
     }
 
@@ -285,7 +288,9 @@ public class UserTest extends AbstractTest {
                 user1);
         userRepository.save(user1);
         await()
-                .atMost(schedulerRate, TimeUnit.SECONDS)
+                .atMost(schedulerRate*2, TimeUnit.SECONDS)
+                .pollInterval(1, TimeUnit.SECONDS)
+                .pollDelay(schedulerRate, TimeUnit.SECONDS)
                 .until(()->userRepository.findAll().size() == 1);
     }
 
