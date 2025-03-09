@@ -36,20 +36,8 @@ public class UserServiceImpl implements UserService{
     private final EmailService emailService;
     @Value("${neya.login.locktime}")
     private final int LOCK_MINUTES = 1;
-    private final int UNVERIFIED_DELETION_HOURS = 24;
 
-    @Transactional
-    @Scheduled(fixedRateString = "${neya.scheduler.delay}",
-            timeUnit = TimeUnit.SECONDS)
-    public void scheduleUnverifiedCleaning(){
-        log.debug("Unverified cleaning started");
-        List<User> affectedUsers = userRepository
-                .findAllByVerificationStartTimeLessThanEqualAndVerifiedFalse(
-                        LocalDateTime.now().minusHours(UNVERIFIED_DELETION_HOURS));
-        log.debug("{} unverified users found for deletion", affectedUsers.size());
-        userRepository.deleteAllInBatch(affectedUsers);
-        log.info("{} unverified users deleted", affectedUsers.size());
-    }
+
 
     @Override
     @Transactional
@@ -192,6 +180,14 @@ public class UserServiceImpl implements UserService{
         user = userRepository.save(user);
         log.info("Unlocking user {}", email);
         return user;
+    }
+
+    @Override
+    public int deleteUnverifiedOldUsers(int hoursAgeUntilDeletion) {
+        int affected = userRepository.deleteUnverifiedAndOldEnough(
+                LocalDateTime.now().minusHours(hoursAgeUntilDeletion));
+        log.info("{} unverified users deleted", affected);
+        return affected;
     }
 
     //Helper method for easier updating
