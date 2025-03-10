@@ -12,6 +12,7 @@ import org.neyaank.task2.email.EmailService;
 import org.neyaank.task2.errorhandling.NotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -188,6 +189,14 @@ public class UserServiceImpl implements UserService{
                 LocalDateTime.now().minusHours(hoursAgeUntilDeletion));
         log.info("{} unverified users deleted", affected);
         return affected;
+    }
+
+    @Override
+    public List<User> findAll(Pageable pageable) {
+        List<User> res = userRepository.findAll(pageable).toList();
+        log.debug("{} users at page {} with size {} found",
+                res.size(), pageable.getPageNumber(), pageable.getPageSize());
+        return res;
     }
 
     //Helper method for easier updating
