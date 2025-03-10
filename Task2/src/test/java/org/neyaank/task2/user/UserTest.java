@@ -284,7 +284,7 @@ public class UserTest extends AbstractTest {
     }
 
     @Test
-    public void should_notDeleteUser_when_scheduledDeletion() throws InterruptedException{
+    public void should_notDeleteUser_when_scheduledDeletion() {
         given_validUserDTO();
         userDTO.setId(null);
         User user1 = userMapper.userDTOToUser(userDTO);
@@ -299,6 +299,41 @@ public class UserTest extends AbstractTest {
                 .pollInterval(1, TimeUnit.SECONDS)
                 .pollDelay(schedulerRate, TimeUnit.SECONDS)
                 .until(()->userRepository.findAll().size() == 1);
+    }
+
+    @Test
+    public void should_returnOneUserPage_when_getSecondPage() throws Exception {
+        given_validUserDTO();
+        userDTO.setId(null);
+        User user1 = userMapper.userDTOToUser(userDTO);
+        user1.setVerificationStartTime(LocalDateTime.now());
+        User user2 = userMapper.userDTOToUser(userDTO);
+        user2.setVerificationStartTime(LocalDateTime.now());
+        user2.setEmail("email2@email.com");
+        log.debug("Test getAll when second page has 1 user {}", user2);
+
+        user1 = userRepository.save(user1);
+        user2 = userRepository.save(user2);
+
+        getUsers(2,1)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].id")
+                        .value(user2.getId()));
+    }
+
+    @Test
+    public void should_returnNoUserPage_when_getSecondPage() throws Exception {
+        given_validUserDTO();
+        userDTO.setId(null);
+        User user1 = userMapper.userDTOToUser(userDTO);
+        user1.setVerificationStartTime(LocalDateTime.now());
+        log.debug("Test getAll when second page has no user");
+
+        user1 = userRepository.save(user1);
+
+        getUsers(2,1)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].id").doesNotExist());
     }
 
     public ResultActions registerUser(UserDTO userDTO) throws Exception {
@@ -318,5 +353,11 @@ public class UserTest extends AbstractTest {
     public ResultActions getUser(int id) throws Exception {
         return mockMvc.perform(
                 get("/users/{id}", id));
+    }
+    public ResultActions getUsers(int page, int pageSize) throws Exception {
+        return mockMvc.perform(
+                get("/users")
+                        .param("page", String.valueOf(page))
+                        .param("pageSize", String.valueOf(pageSize)));
     }
 }
