@@ -322,12 +322,12 @@ public class UserTest extends AbstractTest {
     }
 
     @Test
-    public void should_returnBadRequest_when_getNegativePage() throws Exception {
+    public void should_returnBadRequest_when_getNonPositivePage() throws Exception {
         given_validUserDTO();
         userDTO.setId(null);
         User user1 = userMapper.userDTOToUser(userDTO);
         user1.setVerificationStartTime(LocalDateTime.now());
-        log.debug("Test getAll when negative page");
+        log.debug("Test getAll when non positive page");
 
         user1 = userRepository.save(user1);
 
@@ -335,7 +335,19 @@ public class UserTest extends AbstractTest {
                 .andExpect(status().isBadRequest());
     }
 
+    @Test
+    public void should_returnBadRequest_when_getNonPositivePageSize() throws Exception {
+        given_validUserDTO();
+        userDTO.setId(null);
+        User user1 = userMapper.userDTOToUser(userDTO);
+        user1.setVerificationStartTime(LocalDateTime.now());
+        log.debug("Test getAll when non positive pageSize");
 
+        user1 = userRepository.save(user1);
+
+        getUsers(1,0)
+                .andExpect(status().isBadRequest());
+    }
 
     @Test
     public void should_returnNoUserPage_when_getSecondPage() throws Exception {
