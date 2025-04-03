@@ -22,6 +22,8 @@ import java.time.LocalDateTime;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.awaitility.Awaitility.await;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -137,7 +139,9 @@ public class UserTest extends AbstractTest {
         log.info("Test registerValidUser should receive Email");
 
         registerUser(userDTO);
-        assertEquals(1, greenMail.getReceivedMessages().length);
+        await()
+                .atMost(10, SECONDS)
+                .until(()-> greenMail.getReceivedMessages().length == 1);
     }
 
     @Test
@@ -189,7 +193,9 @@ public class UserTest extends AbstractTest {
         log.debug("Test updateUser sendEmail = {}", userDTO);
 
         updateUser(newUserDTO.getId(), userDTO);
-        assertEquals(1, greenMail.getReceivedMessages().length);
+        await()
+                .atMost(10, SECONDS)
+                .until(()-> greenMail.getReceivedMessages().length == 1);
     }
 
     @Test
@@ -204,7 +210,10 @@ public class UserTest extends AbstractTest {
         log.debug("Test updateUser sendNoEmail = {}", userDTO);
 
         updateUser(newUserDTO.getId(), userDTO);
-        assertEquals(0, greenMail.getReceivedMessages().length);
+        await()
+                .atMost(10, SECONDS)
+                .pollDelay(1800, MILLISECONDS)
+                .until(()-> greenMail.getReceivedMessages().length == 0);
     }
 
     @Test
@@ -277,9 +286,9 @@ public class UserTest extends AbstractTest {
         userRepository.save(user2);
 
         await()
-                .atMost(schedulerRate*2, TimeUnit.SECONDS)
-                .pollInterval(1, TimeUnit.SECONDS)
-                .pollDelay(schedulerRate, TimeUnit.SECONDS)
+                .atMost(schedulerRate*2, SECONDS)
+                .pollInterval(1, SECONDS)
+                .pollDelay(schedulerRate, SECONDS)
                 .until(()-> userRepository.findAll().isEmpty());
     }
 
@@ -295,9 +304,9 @@ public class UserTest extends AbstractTest {
         userRepository.save(user1);
 
         await()
-                .atMost(schedulerRate*2, TimeUnit.SECONDS)
-                .pollInterval(1, TimeUnit.SECONDS)
-                .pollDelay(schedulerRate, TimeUnit.SECONDS)
+                .atMost(schedulerRate*2, SECONDS)
+                .pollInterval(1, SECONDS)
+                .pollDelay(schedulerRate, SECONDS)
                 .until(()->userRepository.findAll().size() == 1);
     }
 
