@@ -3,8 +3,9 @@ services:
     image: 'seamox-task3:latest'
     depends_on:
       - database
+      - mqueue
     ports:
-      - '8080'
+      - '8080:8080'
       - '5432'
     environment:
       - 'DB_PASSWORD=root'
@@ -15,16 +16,26 @@ services:
       - 'SMTP_USERNAME=$SMTP_USERNAME'
       - 'PORT=8080'
       - 'ADDRESS=0.0.0.0'
+      - 'ELASTICMQ=http://mqueue:9324'
+      - 'QUEUE=SendMail'
   database:
     image: 'postgres:17.4'
+    restart: always
     ports:
       - '5432'
-    restart: always
     volumes:
       - db:/var/lib/postgresql/data
     environment:
       - 'POSTGRES_PASSWORD=root'
       - 'POSTGRES_DB=task2'
+  mqueue:
+    image: 'softwaremill/elasticmq-native:1.6.12'
+    ports:
+      - '9325:9325'
+    volumes:
+      - ./elasticmq.conf:/opt/elasticmq.conf
+    environment:
+      - ELASTICMQ_CONFIG=/opt/elasticmq.conf
 volumes:
   db:
     driver: local

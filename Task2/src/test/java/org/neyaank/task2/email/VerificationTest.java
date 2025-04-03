@@ -8,11 +8,13 @@ package org.neyaank.task2.email;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.neyaank.task2.AbstractTest;
 import org.neyaank.task2.user.User;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.ResultActions;
+import software.amazon.awssdk.services.sqs.model.CreateQueueRequest;
 
 import java.util.NoSuchElementException;
 

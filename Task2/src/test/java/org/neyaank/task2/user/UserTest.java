@@ -201,7 +201,7 @@ public class UserTest extends AbstractTest {
 
         newUser = userRepository.save(newUser);
         UserDTO newUserDTO = userMapper.userToUserDTO(newUser);
-        log.debug("Test updateUser sendEmail = {}", userDTO);
+        log.debug("Test updateUser sendNoEmail = {}", userDTO);
 
         updateUser(newUserDTO.getId(), userDTO);
         assertEquals(0, greenMail.getReceivedMessages().length);
