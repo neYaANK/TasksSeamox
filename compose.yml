@@ -1,23 +1,4 @@
 services:
-  springapi:
-    image: 'seamox-task3:latest'
-    depends_on:
-      - database
-      - mqueue
-    ports:
-      - '8080:8080'
-      - '5432'
-    environment:
-      - 'DB_PASSWORD=root'
-      - 'DB_URL=jdbc:postgresql://database:5432/task2'
-      - 'DB_USER=postgres'
-      - 'KEY=$KEY'
-      - 'SMTP_PASSWORD=$SMTP_PASSWORD'
-      - 'SMTP_USERNAME=$SMTP_USERNAME'
-      - 'PORT=8080'
-      - 'ADDRESS=0.0.0.0'
-      - 'ELASTICMQ=http://mqueue:9324'
-      - 'QUEUE=SendMail'
   database:
     image: 'postgres:17.4'
     restart: always
@@ -32,6 +13,7 @@ services:
     image: 'softwaremill/elasticmq-native:1.6.12'
     ports:
       - '9325:9325'
+      - '9324:9324'
     volumes:
       - ./elasticmq.conf:/opt/elasticmq.conf
     environment:

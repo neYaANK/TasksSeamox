@@ -25,12 +25,9 @@ public class SendMailQueueListener {
     private String publicUrl;
     @Value("${spring.mail.username}")
     private String from;
-    @Value("${neya.elasticmq.queue}")
-    private String queue;
 
     @SqsListener("SendMail")
     public void receiveMessage(SendMailPojo pojo) {
-        log.info("SEND EMAIL");
         SimpleMailMessage email = new SimpleMailMessage();
         email.setFrom(from);
         email.setTo(pojo.getDestination());
