@@ -21,21 +21,17 @@ import software.amazon.eventstream.Message;
 @Slf4j
 public class SendMailQueueListener {
     private final JavaMailSender mailSender;
-    @Value("${neya.public.url}")
-    private String publicUrl;
-    @Value("${spring.mail.username}")
+    @Value("${neya.verification.sender}")
     private String from;
 
     @SqsListener("SendMail")
-    public void receiveMessage(SendMailPojo pojo) {
+    public void receiveMessage(VerificationEmail message) {
         SimpleMailMessage email = new SimpleMailMessage();
         email.setFrom(from);
-        email.setTo(pojo.getDestination());
+        email.setTo(message.getRecipientEmail());
         email.setSubject("Email Verification");
-        email.setText("Verify your email by clicking at this link: " +
-                publicUrl + "/verification?code=" +
-                pojo.getVerificationCode());
-        log.debug("Sending verification email to {}", pojo.getDestination());
+        email.setText(message.getMessage());
+        log.debug("Sending verification email to {}", message.getRecipientEmail());
         mailSender.send(email);
     }
 }

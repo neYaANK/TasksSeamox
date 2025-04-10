@@ -9,10 +9,12 @@ import com.icegreen.greenmail.store.FolderException;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.neyaank.task2.AbstractTest;
+import org.neyaank.task2.email.ElasticMqExtension;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.ResultActions;
@@ -34,6 +36,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @Slf4j
+@ExtendWith({ElasticMqExtension.class})
 public class UserTest extends AbstractTest {
     @Value("${neya.scheduler.delay}")
     private int schedulerRate;

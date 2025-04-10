@@ -37,31 +37,8 @@ public class EmailServiceImpl implements EmailService {
     public void sendVerificationEmail(String to, String verificationCode, int userId) {
         String message = "Verify your email by clicking at this link: " +
                 publicUrl + "/verification?code=" + verificationCode;
-        SendMailPojo mail = new SendMailPojo(to, userId, verificationCode, message);
+        VerificationEmail mail = new VerificationEmail(to, userId, message);
         var res = sqsTemplate.send("SendMail",mail);
     }
 
-//    private void sendMessageToQueue(String name, String receiver,
-//                                    int userId, String message) {
-//            GetQueueUrlRequest req = GetQueueUrlRequest.builder()
-//                    .queueName(name).build();
-//            String url = sqsClient.getQueueUrl(req).queueUrl();
-//            Map<String,MessageAttributeValue> args = new HashMap<>();
-//            args.put("destination", MessageAttributeValue.builder()
-//                    .stringValue(receiver)
-//                    .dataType("String")
-//                    .build());
-//            args.put("userid", MessageAttributeValue.builder()
-//                    .stringValue(String.valueOf(userId))
-//                    .dataType("Number")
-//                    .build());
-//            log.debug("Sending message to message queue {{};{}} {}",receiver, userId, url);
-//            SendMessageRequest sendMsgRequest = SendMessageRequest.builder()
-//                    .queueUrl(url)
-//                    .messageBody(message)
-//                    .messageAttributes(args)
-//                    .delaySeconds(5)
-//                    .build();
-//            sqsClient.sendMessage(sendMsgRequest);
-//    }
 }

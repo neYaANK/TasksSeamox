@@ -16,7 +16,9 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.extension.RegisterExtension;
+import org.neyaank.task2.email.ElasticMqExtension;
 import org.neyaank.task2.user.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -24,6 +26,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.servlet.HandlerMapping;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
@@ -41,6 +44,7 @@ import java.util.UUID;
 
 @SpringBootTest
 @AutoConfigureMockMvc
+@ExtendWith(ElasticMqExtension.class)
 public class AbstractTest {
     @RegisterExtension
     protected static GreenMailExtension greenMail =
@@ -48,8 +52,6 @@ public class AbstractTest {
             .withConfiguration(GreenMailConfiguration.aConfig()
                     .withUser("user", "admin"))
             .withPerMethodLifecycle(false);
-    protected static SQSRestServer server;
-    protected String queueUrl;
 
     @Autowired
     protected SqsAsyncClient sqsClient;
@@ -80,26 +82,5 @@ public class AbstractTest {
     public void given_validUserAddressDTO(){
         addressDTO = new UserAddressDTO(null,"AUT", "10000",
                 "Vienna", "Strasse 1", "abcd", false);
-    }
-
-    @BeforeAll
-    static void setUp() {
-        server = SQSRestServerBuilder.withPort(9324).start();
-        //One-time use client to set up default queue
-        SqsClient client = SqsClient.builder()
-                .region(Region.EU_CENTRAL_1)
-                .endpointOverride(URI.create("http://localhost:9324"))
-                .credentialsProvider(StaticCredentialsProvider.create(
-                        AwsBasicCredentials.create("x","x")))
-                .build();
-        CreateQueueRequest req = CreateQueueRequest.builder()
-                .queueName("SendMail")
-                .build();
-        client.createQueue(req);
-        client.close();
-    }
-    @AfterAll
-    static void tearDown(){
-        server.stopAndWait();
     }
 }
