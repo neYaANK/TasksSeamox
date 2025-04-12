@@ -5,41 +5,42 @@
 
 package org.neyaank.task2.email;
 
-import io.awspring.cloud.sqs.config.SqsMessageListenerContainerFactory;
-import org.springframework.beans.factory.annotation.Value;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
-import software.amazon.awssdk.auth.credentials.ProfileCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
-import software.amazon.awssdk.services.sqs.SqsClient;
-import software.amazon.awssdk.http.apache.ApacheHttpClient;
 
 
 import java.net.URI;
 
 @Configuration
+@Slf4j
 public class SqsConfig {
-    @Value("${neya.elasticmq.url}")
-    private String elasticmq;
 
+    @Profile("dev")
     @Bean
     public SqsAsyncClient sqsClient() {
+        log.debug("Creating sqsClient dev instance");
         SqsAsyncClient client = SqsAsyncClient.builder()
                 .region(Region.EU_CENTRAL_1)
-                .credentialsProvider(StaticCredentialsProvider
-                        .create(AwsBasicCredentials.create("X","X")))
-                .endpointOverride(URI.create(elasticmq))
                 .build();
         return client;
     }
-//    @Bean
-//    public SqsMessageListenerContainerFactory<Object> sqsMessageListenerContainerFactory() {
-//        return SqsMessageListenerContainerFactory
-//                .builder()
-//                .sqsAsyncClient(sqsClient())
-//                .build();
-//    }
+
+    @Profile("test")
+    @Bean
+    public SqsAsyncClient sqsElasticMqClient() {
+        log.debug("Creating sqsClient test instance");
+        SqsAsyncClient client = SqsAsyncClient.builder()
+                .region(Region.EU_CENTRAL_1)
+                .credentialsProvider(StaticCredentialsProvider
+                        .create(AwsBasicCredentials.create("X", "X")))
+                .endpointOverride(URI.create("http://localhost:9324"))
+                .build();
+        return client;
+    }
 }
