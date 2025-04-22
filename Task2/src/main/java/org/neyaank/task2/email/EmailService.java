@@ -6,5 +6,5 @@
 package org.neyaank.task2.email;
 
 public interface EmailService {
-    void sendVerificationEmail(String to, String unique);
+    void sendVerificationEmail(String to, String unique, int userId);
 }

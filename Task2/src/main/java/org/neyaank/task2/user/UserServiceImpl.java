@@ -51,7 +51,8 @@ public class UserServiceImpl implements UserService{
         user.setVerificationStartTime(LocalDateTime.now());
         User res = userRepository.save(user);
         log.info("User registered {}", res);
-        emailService.sendVerificationEmail(user.getEmail(), verification);
+        emailService.sendVerificationEmail(user.getEmail(),
+                verification, res.getId());
         return res;
     }
 
@@ -73,7 +74,7 @@ public class UserServiceImpl implements UserService{
         user = userRepository.save(user);
         if(emailChanged) {
             emailService.sendVerificationEmail(user.getEmail(),
-                    user.getVerificationCode());
+                    user.getVerificationCode(), user.getId());
         }
         log.info("Updating User {} with {}", user.getEmail(), user);
         return user;

@@ -8,23 +8,26 @@ package org.neyaank.task2;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.icegreen.greenmail.configuration.GreenMailConfiguration;
 import com.icegreen.greenmail.junit5.GreenMailExtension;
-import com.icegreen.greenmail.store.FolderException;
 import com.icegreen.greenmail.util.ServerSetupTest;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.extension.RegisterExtension;
+import org.neyaank.task2.email.ElasticMqExtension;
+import org.neyaank.task2.email.SqsTestConfiguration;
 import org.neyaank.task2.user.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.test.web.servlet.MockMvc;
+import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 
 import java.time.LocalDate;
-import java.util.UUID;
 
 @SpringBootTest
 @AutoConfigureMockMvc
+@ExtendWith(ElasticMqExtension.class)
+@Import(SqsTestConfiguration.class)
 public class AbstractTest {
     @RegisterExtension
     protected static GreenMailExtension greenMail =
@@ -32,8 +35,11 @@ public class AbstractTest {
             .withConfiguration(GreenMailConfiguration.aConfig()
                     .withUser("user", "admin"))
             .withPerMethodLifecycle(false);
+
     @Autowired
-    protected static JavaMailSender mailSender;
+    protected SqsAsyncClient sqsClient;
+    @Autowired
+    protected JavaMailSender mailSender;
     @Autowired
     protected MockMvc mockMvc;
     @Autowired

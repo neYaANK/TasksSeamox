@@ -9,10 +9,12 @@ import com.icegreen.greenmail.store.FolderException;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.neyaank.task2.AbstractTest;
+import org.neyaank.task2.email.ElasticMqExtension;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.ResultActions;
@@ -22,6 +24,8 @@ import java.time.LocalDateTime;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.awaitility.Awaitility.await;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -32,6 +36,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @Slf4j
+@ExtendWith({ElasticMqExtension.class})
 public class UserTest extends AbstractTest {
     @Value("${neya.scheduler.delay}")
     private int schedulerRate;
@@ -137,7 +142,9 @@ public class UserTest extends AbstractTest {
         log.info("Test registerValidUser should receive Email");
 
         registerUser(userDTO);
-        assertEquals(1, greenMail.getReceivedMessages().length);
+        await()
+                .atMost(10, SECONDS)
+                .until(()-> greenMail.getReceivedMessages().length == 1);
     }
 
     @Test
@@ -189,7 +196,9 @@ public class UserTest extends AbstractTest {
         log.debug("Test updateUser sendEmail = {}", userDTO);
 
         updateUser(newUserDTO.getId(), userDTO);
-        assertEquals(1, greenMail.getReceivedMessages().length);
+        await()
+                .atMost(10, SECONDS)
+                .until(()-> greenMail.getReceivedMessages().length == 1);
     }
 
     @Test
@@ -201,10 +210,13 @@ public class UserTest extends AbstractTest {
 
         newUser = userRepository.save(newUser);
         UserDTO newUserDTO = userMapper.userToUserDTO(newUser);
-        log.debug("Test updateUser sendEmail = {}", userDTO);
+        log.debug("Test updateUser sendNoEmail = {}", userDTO);
 
         updateUser(newUserDTO.getId(), userDTO);
-        assertEquals(0, greenMail.getReceivedMessages().length);
+        await()
+                .atMost(10, SECONDS)
+                .pollDelay(1800, MILLISECONDS)
+                .until(()-> greenMail.getReceivedMessages().length == 0);
     }
 
     @Test
@@ -277,9 +289,9 @@ public class UserTest extends AbstractTest {
         userRepository.save(user2);
 
         await()
-                .atMost(schedulerRate*2, TimeUnit.SECONDS)
-                .pollInterval(1, TimeUnit.SECONDS)
-                .pollDelay(schedulerRate, TimeUnit.SECONDS)
+                .atMost(schedulerRate*2, SECONDS)
+                .pollInterval(1, SECONDS)
+                .pollDelay(schedulerRate, SECONDS)
                 .until(()-> userRepository.findAll().isEmpty());
     }
 
@@ -295,9 +307,9 @@ public class UserTest extends AbstractTest {
         userRepository.save(user1);
 
         await()
-                .atMost(schedulerRate*2, TimeUnit.SECONDS)
-                .pollInterval(1, TimeUnit.SECONDS)
-                .pollDelay(schedulerRate, TimeUnit.SECONDS)
+                .atMost(schedulerRate*2, SECONDS)
+                .pollInterval(1, SECONDS)
+                .pollDelay(schedulerRate, SECONDS)
                 .until(()->userRepository.findAll().size() == 1);
     }
 

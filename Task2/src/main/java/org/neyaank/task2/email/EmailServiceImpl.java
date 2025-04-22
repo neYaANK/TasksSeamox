@@ -5,6 +5,8 @@
 
 package org.neyaank.task2.email;
 
+import io.awspring.cloud.sqs.operations.SqsTemplate;
+import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,27 +15,30 @@ import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+import software.amazon.awssdk.services.sqs.SqsAsyncClient;
+import software.amazon.awssdk.services.sqs.SqsClient;
+import software.amazon.awssdk.services.sqs.model.*;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @Service
 @Slf4j
-public class EmailServiceImpl implements EmailService{
+@RequiredArgsConstructor
+public class EmailServiceImpl implements EmailService {
     private final JavaMailSender mailSender;
+    private final SqsAsyncClient sqsClient;
+    private final SqsTemplate sqsTemplate;
     @Value("${neya.public.url}")
     private String publicUrl;
-    @Value("${spring.mail.username}")
-    private String from;
-    public EmailServiceImpl(JavaMailSender mailSender) {
-        this.mailSender = mailSender;
+
+
+    public void sendVerificationEmail(String to, String verificationCode, int userId) {
+        String message = "Verify your email by clicking at this link: " +
+                publicUrl + "/verification?code=" + verificationCode;
+        VerificationEmail mail = new VerificationEmail(to, userId, message);
+        var res = sqsTemplate.send("SendMail",mail);
     }
 
-    public void sendVerificationEmail(String to, String verificationCode) {
-        SimpleMailMessage message = new SimpleMailMessage();
-        message.setFrom(from);
-        message.setTo(to);
-        message.setSubject("Email Verification");
-        message.setText("Verify your email by clicking at this link: " +
-                publicUrl+"/verification?code="+verificationCode);
-        log.debug("Sending verification email to {}", to);
-        mailSender.send(message);
-    }
 }
