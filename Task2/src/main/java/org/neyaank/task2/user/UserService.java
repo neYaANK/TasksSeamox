@@ -6,7 +6,10 @@
 package org.neyaank.task2.user;
 
 import org.springframework.data.domain.Pageable;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.awt.*;
+import java.io.IOException;
 import java.util.List;
 
 public interface UserService {
@@ -24,4 +27,6 @@ public interface UserService {
     User unlockAccount(String email);
     int deleteUnverifiedOldUsers(int hoursAgeUntilDeletion);
     List<User> findAll(Pageable pageable);
+    byte[] getImage(int id) throws IOException;
+    void uploadImage(int id, MultipartFile image);
 }
