@@ -7,13 +7,17 @@ package org.neyaank.task2.user;
 
 import jakarta.validation.Valid;
 import jakarta.validation.ValidationException;
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 
 @RestController
@@ -46,6 +50,7 @@ public class UserController {
         UserDTO result = userMapper.userToUserDTO(user);
         return ResponseEntity.ok(result);
     }
+
     @GetMapping
     public ResponseEntity getUsers(@RequestParam(name = "page") int page,
                                    @RequestParam(name = "pageSize") int pageSize) {
@@ -58,6 +63,24 @@ public class UserController {
         List<User> res = userService.findAll(pageable);
 
         return ResponseEntity.ok(res);
+    }
+
+    @PostMapping(value = "/{id}/image",
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity uploadImage(@PathVariable int id,
+                @NotNull @RequestParam(name = "image") MultipartFile file){
+        if(!file.getOriginalFilename().contains("jpg")) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        userService.uploadImage(id, file);
+        return ResponseEntity.ok().build();
+    }
+    @GetMapping(value = "/{id}/image",
+                produces = MediaType.IMAGE_JPEG_VALUE)
+    public ResponseEntity getImage(@PathVariable int id) throws IOException {
+        byte[] img = userService.getImage(id);
+        return ResponseEntity.ok().body(img);
     }
 
 }

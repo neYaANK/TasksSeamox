@@ -19,8 +19,11 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.awt.*;
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -35,6 +38,7 @@ public class UserServiceImpl implements UserService{
     private final UserRepository userRepository;
     private final BCryptPasswordEncoder passwordEncoder;
     private final EmailService emailService;
+    private final ImageService imageService;
     @Value("${neya.login.locktime}")
     private final int LOCK_MINUTES = 1;
 
@@ -198,6 +202,22 @@ public class UserServiceImpl implements UserService{
         log.debug("{} users at page {} with size {} found",
                 res.size(), pageable.getPageNumber(), pageable.getPageSize());
         return res;
+    }
+
+    @Override
+    public byte[] getImage(int id) throws IOException {
+        byte[] img = imageService.getImage(String.valueOf(id));
+        return img;
+    }
+
+    @Override
+    public void uploadImage(int id, MultipartFile image) {
+        try {
+            imageService.saveImage(image.getInputStream(),
+                    String.valueOf(id));
+        } catch (IOException e) {
+            throw new IllegalArgumentException("Image not supported");
+        }
     }
 
     //Helper method for easier updating

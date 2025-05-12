@@ -9,6 +9,15 @@ services:
     environment:
       - 'POSTGRES_PASSWORD=root'
       - 'POSTGRES_DB=task2'
+  s3mock:
+    image: 'adobe/s3mock:4.1.1'
+    environment:
+      - 'initialBuckets=UserImages'
+      - 'retainFilesOnExit=true'
+    ports:
+      - '9090:9090'
+    volumes:
+      - ./locals3root:/containers3root
   mqueue:
     image: 'softwaremill/elasticmq-native:1.6.12'
     ports:

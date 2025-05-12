@@ -7,6 +7,7 @@ package org.neyaank.task2.user;
 
 import com.icegreen.greenmail.store.FolderException;
 import lombok.extern.slf4j.Slf4j;
+import net.bytebuddy.utility.dispatcher.JavaDispatcher;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -16,9 +17,17 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.neyaank.task2.AbstractTest;
 import org.neyaank.task2.email.ElasticMqExtension;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.servlet.ResultActions;
+import org.testcontainers.containers.GenericContainer;
+import org.testcontainers.junit.jupiter.Container;
 
+import java.nio.file.Files;
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.concurrent.Callable;
@@ -28,10 +37,8 @@ import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.awaitility.Awaitility.await;
 import static org.hamcrest.Matchers.equalTo;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -376,6 +383,56 @@ public class UserTest extends AbstractTest {
                 .andExpect(jsonPath("$[0].id").doesNotExist());
     }
 
+    @Test
+    public void should_haveImageInBucket_when_uploadImageJpeg() throws Exception {
+        given_validUserDTO();
+        userDTO.setId(null);
+        User user1 = userMapper.userDTOToUser(userDTO);
+        user1.setVerificationStartTime(LocalDateTime.now());
+        log.debug("Test haveImageInBucket when upload test jpeg image");
+
+        user1 = userRepository.save(user1);
+
+        mockMvc.perform(
+                multipart("/users/{id}/image",user1.getId())
+                        .file(getTestMultipartJpeg()))
+                .andExpect(status().isOk());
+        assertFalse(s3.listObjects("UserImages", "").isEmpty());
+        log.debug("S3 objects {}", s3.listObjects("UserImages",""));
+    }
+
+    @Test
+    public void should_reject_when_uploadImagePng() throws Exception {
+        given_validUserDTO();
+        userDTO.setId(null);
+        User user1 = userMapper.userDTOToUser(userDTO);
+        user1.setVerificationStartTime(LocalDateTime.now());
+        log.debug("Test haveNoImageInBucket when upload test jpeg image");
+
+        user1 = userRepository.save(user1);
+
+        mockMvc.perform(
+                        multipart("/users/{id}/image",user1.getId())
+                                .file(getTestMultipartPng()))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    public void should_returnThumbnail_when_requestExistingImage() throws Exception {
+        given_validUserDTO();
+        userDTO.setId(null);
+        User user1 = userMapper.userDTOToUser(userDTO);
+        user1.setVerificationStartTime(LocalDateTime.now());
+        log.debug("Test returnThumbnail when image exists");
+
+        user1 = userRepository.save(user1);
+        userService.uploadImage(user1.getId(), getTestMultipartPng());
+        mockMvc.perform(
+                        get("/users/{id}/image",user1.getId()))
+                .andExpect(status().isOk());
+    }
+
+
     public ResultActions registerUser(UserDTO userDTO) throws Exception {
         return mockMvc.perform(
                 post("/users")
@@ -399,5 +456,25 @@ public class UserTest extends AbstractTest {
                 get("/users")
                         .param("page", String.valueOf(page))
                         .param("pageSize", String.valueOf(pageSize)));
+    }
+    public MockMultipartFile getTestMultipartJpeg() throws Exception {
+        ClassPathResource userImage = new ClassPathResource("test.jpg");
+        byte[] image = userImage.getContentAsByteArray();
+        return new MockMultipartFile(
+                "image",
+                "img.jpg",
+                MediaType.IMAGE_JPEG_VALUE,
+                image
+        );
+    }
+    public MockMultipartFile getTestMultipartPng() throws Exception {
+        ClassPathResource userImage = new ClassPathResource("testPng.png");
+        byte[] image = userImage.getContentAsByteArray();
+        return new MockMultipartFile(
+                "image",
+                "img.png",
+                MediaType.IMAGE_PNG_VALUE,
+                image
+        );
     }
 }
