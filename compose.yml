@@ -1,0 +1,98 @@
+services:
+
+
+
+  app1:
+    build:
+      context: user-management-app
+      dockerfile: Dockerfile
+    ports:
+      - 8181:8080
+    environment:
+      - KEY=${KEY}
+      - SMTP_PASSWORD=${SMTP_PASSWORD}
+      - SMTP_USERNAME=${SMTP_USERNAME}
+      - SENDER_EMAIL=${SENDER_EMAIL}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_URL=${DB_URL}
+      - DB_USER=${DB_USER}
+      - PORT=${PORT}
+      - ADDRESS=${ADDRESS}
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_SESSION_TOKEN=${AWS_SESSION_TOKEN}
+      - AWS_REGION=${AWS_REGION}
+      - S3_ENDPOINT=http://s3mock:9090
+      - SQS_ENDPOINT=http://mqueue:9324
+    depends_on:
+      - database
+      - s3mock
+      - mqueue
+
+  app2:
+    build:
+      context: user-management-app
+      dockerfile: Dockerfile
+    ports:
+      - 8282:8080
+    environment:
+      - KEY=${KEY}
+      - SMTP_PASSWORD=${SMTP_PASSWORD}
+      - SMTP_USERNAME=${SMTP_USERNAME}
+      - SENDER_EMAIL=${SENDER_EMAIL}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_URL=${DB_URL}
+      - DB_USER=${DB_USER}
+      - PORT=${PORT}
+      - ADDRESS=${ADDRESS}
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_SESSION_TOKEN=${AWS_SESSION_TOKEN}
+      - AWS_REGION=${AWS_REGION}
+      - S3_ENDPOINT=http://s3mock:9090
+      - SQS_ENDPOINT=http://mqueue:9324
+    depends_on:
+      - database
+      - s3mock
+      - mqueue
+
+  balancer:
+    build:
+      context: nginx
+      dockerfile: Dockerfile
+    ports:
+      - 8080:9090
+    depends_on:
+      - app1
+      - app2
+  database:
+    image: 'postgres:17.4'
+    restart: always
+    ports:
+      - '5432'
+    volumes:
+      - db:/var/lib/postgresql/data
+    environment:
+      - 'POSTGRES_PASSWORD=root'
+      - 'POSTGRES_DB=task2'
+  s3mock:
+    image: 'adobe/s3mock:4.1.1'
+    environment:
+      - 'initialBuckets=UserImages'
+      - 'retainFilesOnExit=true'
+    ports:
+      - '8111:9090'
+    volumes:
+      - ./locals3root:/containers3root
+  mqueue:
+    image: 'softwaremill/elasticmq-native:1.6.12'
+    ports:
+      - '9325:9325'
+      - '9324:9324'
+    volumes:
+      - ./user-management-app/elasticmq.conf:/opt/elasticmq.conf:ro
+    environment:
+      - ELASTICMQ_CONFIG=/opt/elasticmq.conf
+volumes:
+  db:
+    driver: local
